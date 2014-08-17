@@ -2,10 +2,26 @@ if myHero.charName ~= "Lux"  or not VIP_USER then return end
 local version = 0.3
 local AUTOUPDATE = true
 local SCRIPT_NAME = "Lux - The Laser Slut"
+local SOURCELIB_URL = "https://raw.github.com/TheRealSource/public/master/common/SourceLib.lua"
+local SOURCELIB_PATH = LIB_PATH.."SourceLib.lua"
+
+if FileExist(SOURCELIB_PATH) then
+	require("SourceLib")
+else
+	DOWNLOADING_SOURCELIB = true
+	DownloadFile(SOURCELIB_URL, SOURCELIB_PATH, function() print("Required libraries downloaded successfully, please reload") end)
+end
+
+if DOWNLOADING_SOURCELIB then print("Downloading required libraries, please wait...") return end
+
+if AUTOUPDATE then
+	SourceUpdater(SCRIPT_NAME, version, "raw.github.com", "syraxtepper/bolscripts"..SCRIPT_NAME..".lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME, "blob/master/Lux%20-%20The%20Laser%20Slut"..SCRIPT_NAME..".version"):CheckUpdate()
+end
+
 require 'VPrediction'
 require 'SOW'
-require "SourceLib"
-require "Collision"
+require 'SourceLib'
+require 'Collision'
 -- Constants --
 local ignite, igniteReady = nil, nil
 local ts = nil
