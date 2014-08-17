@@ -1,22 +1,17 @@
+-- [[ Lux - The Laser Slut By Syrax
+
+Thx to Klokje For the mutch help
+Thx to Articuno 
+thx to SilentStar for help whit VP
+
+]]
+
 if myHero.charName ~= "Lux"  or not VIP_USER then return end
-local version = 0.4
+local version = 0.3
 local AUTOUPDATE = true
 local SCRIPT_NAME = "Lux - The Laser Slut"
 local SOURCELIB_URL = "https://raw.github.com/TheRealSource/public/master/common/SourceLib.lua"
 local SOURCELIB_PATH = LIB_PATH.."SourceLib.lua"
-
-if FileExist(SOURCELIB_PATH) then
-	require("SourceLib")
-else
-	DOWNLOADING_SOURCELIB = true
-	DownloadFile(SOURCELIB_URL, SOURCELIB_PATH, function() print("Required libraries downloaded successfully, please reload") end)
-end
-
-if DOWNLOADING_SOURCELIB then print("Downloading required libraries, please wait...") return end
-
-if AUTOUPDATE then
-	SourceUpdater(SCRIPT_NAME, version, "raw.github.com", "syraxtepper/bolscripts"..SCRIPT_NAME..".lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME, "blob/master/Lux%20-%20The%20Laser%20Slut"..SCRIPT_NAME..".version"):CheckUpdate()
-end
 
 require 'VPrediction'
 require 'SOW'
@@ -124,6 +119,7 @@ function initComponents()
    Menu.Ads:addSubMenu("Killsteal", "KS")
    Menu.Ads.KS:addParam("ignite", "Use Ignite", SCRIPT_PARAM_ONOFF, false)
    Menu.Ads.KS:addParam("useR", "Use R", SCRIPT_PARAM_ONOFF, false)
+   Menu.Ads.KS:addParam("useE", "Use E", SCRIPT_PARAM_ONOFF, false)
   Menu.Ads.KS:addParam("igniteRange", "Minimum range to cast Ignite", SCRIPT_PARAM_SLICE, 470, 0, 600, 0)
   Menu.Ads:addSubMenu("VIP", "VIP")
     Menu.Ads.VIP:addParam("skin", "Use custom skin", SCRIPT_PARAM_ONOFF, false)
@@ -253,15 +249,24 @@ function AllInCombo(target, typeCombo)
 		ItemUsage(target)
 	
 		if Menu.luxCombo.qSet.useQ and ValidTarget(target, skills.SkillQ.range) and Qready then
-			CastSpell(_Q, ts.target.x, ts.target.z)
-		end
+			local CastPosition,  HitChance,  Position = VP:GetLineCastPosition(target, skills.SkillQ.delay, skills.SkillQ.width, skills.SkillQ.range, skills.SkillQ.speed, myHero, true)
+            if HitChance >= 2 and GetDistance(CastPosition) < 1050 then
+				CastSpell(_Q, CastPosition.x, CastPosition.z)
+            end
+    end
       	
+        
+        
 
 		if Menu.luxCombo.eSet.useE and ValidTarget(target, skills.SkillE.range) and Eready then
-		    CastSpell(_E, ts.target.x, ts.target.z)
-		end
-	end
+		    local CastPosition,  HitChance,  Position = VP:GetCircularCastPosition(target, skills.SkillE.delay, skills.SkillE.width, skills.SkillE.range, skills.SkillE.speed, myHero, false)
+            if HitChance >= 1 and GetDistance(CastPosition) < 1050 then
+				CastSpell(_E, CastPosition.x, CastPosition.z)
+            end
+    end
+   end
 end
+
 
 -- All In Combo --
 
@@ -318,6 +323,9 @@ function KillSteal()
   if Menu.Ads.KS.useR then
 		hardeultiKS()
 	end
+  if Menu.Ads.KS.useE then
+    hardeKSE()
+  end
 	if Menu.Ads.KS.ignite then
 		IgniteKS()
 	end
@@ -339,18 +347,35 @@ function IgniteKS()
 end
 
 
-
+-- ks ulti
 function hardeultiKS()
 	for i, target in ipairs(GetEnemyHeroes()) do
 		rDmg = getDmg("R", target, myHero)
 
 		if Rready and target ~= nil and ValidTarget(target, skills.SkillR.range) and target.health < rDmg then
-			CastSpell(_R, target.x, target.z)
+      local CastPosition,  HitChance,  Position = VP:GetCircularCastPosition(target, skills.SkillR.delay, skills.SkillR.width, skills.SkillR.range, skills.SkillR.speed, myHero, false)
+            if HitChance >= 1 and GetDistance(CastPosition) < 3340 then
+				CastSpell(_R, CastPosition.x, CastPosition.z)
+          end
+     
       
     end
   end
   
 end
+
+-- ks E
+
+function hardeKSE()
+  for i, target in ipairs(GetEnemyHeroes()) do
+    eDmg = getDmg("E", target, myHero)
+    
+    if Eready and target ~= nil and ValidTarget(target, skills.SkillE.range) and target.health < eDmg then
+      CastSpell(_E, target.x, target.z)
+    end
+  end
+end
+
 -- Auto Ignite --
 
 function HealthCheck(unit, HealthValue)
