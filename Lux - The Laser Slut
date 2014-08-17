@@ -1,10 +1,11 @@
 if myHero.charName ~= "Lux"  or not VIP_USER then return end
-local version = 0.2
+local version = 0.3
 local AUTOUPDATE = true
 local SCRIPT_NAME = "Lux - The Laser Slut"
 require 'VPrediction'
 require 'SOW'
 require "SourceLib"
+require "Collision"
 -- Constants --
 local ignite, igniteReady = nil, nil
 local ts = nil
