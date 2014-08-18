@@ -1,5 +1,5 @@
 if myHero.charName ~= "Lux"  or not VIP_USER then return end
-local version = 0.3
+local version = 0.4
 local AUTOUPDATE = true
 local SCRIPT_NAME = "Lux - The Laser Slut"
 local SOURCELIB_URL = "https://raw.github.com/TheRealSource/public/master/common/SourceLib.lua"
@@ -112,6 +112,7 @@ function initComponents()
    Menu.Ads.KS:addParam("ignite", "Use Ignite", SCRIPT_PARAM_ONOFF, false)
    Menu.Ads.KS:addParam("useR", "Use R", SCRIPT_PARAM_ONOFF, false)
    Menu.Ads.KS:addParam("useE", "Use E", SCRIPT_PARAM_ONOFF, false)
+   Menu.Ads.KS:addParam("autoQ", "Auto Q", SCRIPT_PARAM_ONOFF, false)
   Menu.Ads.KS:addParam("igniteRange", "Minimum range to cast Ignite", SCRIPT_PARAM_SLICE, 470, 0, 600, 0)
   Menu.Ads:addSubMenu("VIP", "VIP")
     Menu.Ads.VIP:addParam("skin", "Use custom skin", SCRIPT_PARAM_ONOFF, false)
@@ -147,6 +148,7 @@ function OnTick()
 	CDHandler()
 	KillSteal()
   DamageCalculation()
+  OnGapclose(target)
 
 	if Menu.Ads.VIP.skin and VIP_USER and skinChanged() then
 		GenModelPacket("lux", Menu.Ads.VIP.skin1)
@@ -223,7 +225,19 @@ function Harass()
 end
 
 
-
+-- auto Q
+function OnGapclose(target)
+  if target ~= nil then
+    
+    local CastPosition,  HitChance,  Position = VP:GetCircularCastPosition(target, skills.SkillQ.delay, skills.SkillQ.width, skills.SkillQ.range, skills.SkillQ.speed, myHero, false)
+          if Qready and  Menu.Ads.KS.autoQ and  HitChance >= 2 and GetDistance(CastPosition) < 500 then
+            CastSpell(_Q, CastPosition.x, CastPosition.z)
+          end
+         
+            
+		
+	end
+end
 
 -- Combo herkenbaar--
 
@@ -251,9 +265,8 @@ function AllInCombo(target, typeCombo)
         
 
 		if Menu.luxCombo.eSet.useE and ValidTarget(target, skills.SkillE.range) and Eready then
-		    local CastPosition,  HitChance,  Position = VP:GetCircularCastPosition(target, skills.SkillE.delay, skills.SkillE.width, skills.SkillE.range, skills.SkillE.speed, myHero, false)
+local CastPosition,  HitChance,  Position = VP:GetCircularCastPosition(target, skills.SkillE.delay, skills.SkillE.width, skills.SkillE.range, skills.SkillE.speed, myHero, false)
             if HitChance >= 1 and GetDistance(CastPosition) < 1050 then
-				CastSpell(_E, CastPosition.x, CastPosition.z)
             end
     end
    end
