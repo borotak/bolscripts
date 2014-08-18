@@ -229,7 +229,7 @@ end
 function OnGapclose(target)
   if target ~= nil then
     
-    local CastPosition,  HitChance,  Position = VP:GetCircularCastPosition(target, skills.SkillQ.delay, skills.SkillQ.width, skills.SkillQ.range, skills.SkillQ.speed, myHero, false)
+    local CastPosition,  HitChance,  Position = VP:GetCircularCastPosition(target, skills.SkillQ.delay, skills.SkillQ.width, skills.SkillQ.range, skills.SkillQ.speed, myHero, true)
           if Qready and  Menu.Ads.KS.autoQ and  HitChance >= 2 and GetDistance(CastPosition) < 500 then
             CastSpell(_Q, CastPosition.x, CastPosition.z)
           end
@@ -255,20 +255,19 @@ function AllInCombo(target, typeCombo)
 		ItemUsage(target)
 	
 		if Menu.luxCombo.qSet.useQ and ValidTarget(target, skills.SkillQ.range) and Qready then
-			local CastPosition,  HitChance,  Position = VP:GetLineCastPosition(target, skills.SkillQ.delay, skills.SkillQ.width, skills.SkillQ.range, skills.SkillQ.speed, myHero, true)
+			local CastPosition, HitChance, Position = VP:GetLineCastPosition(target, skills.SkillQ.delay, skills.SkillQ.width, skills.SkillQ.range, skills.SkillQ.speed, myHero, true)
             if HitChance >= 2 and GetDistance(CastPosition) < 1050 then
 				CastSpell(_Q, CastPosition.x, CastPosition.z)
             end
     end
       	
         
-        
-
-		if Menu.luxCombo.eSet.useE and ValidTarget(target, skills.SkillE.range) and Eready then
-local CastPosition,  HitChance,  Position = VP:GetCircularCastPosition(target, skills.SkillE.delay, skills.SkillE.width, skills.SkillE.range, skills.SkillE.speed, myHero, false)
-            if HitChance >= 1 and GetDistance(CastPosition) < 1050 then
+		   if Menu.luxCombo.eSet.useE and ValidTarget(target, skills.SkillE.range) and Eready then
+local CastPosition, HitChance, Position = VP:GetCircularCastPosition(target, skills.SkillE.delay, skills.SkillE.width, skills.SkillE.range, skills.SkillE.speed, myHero, false)
+            if HitChance >= 2 and GetDistance(CastPosition) < 1100 then
+              CastSpell(_E, CastPosition.x, CastPosition.z)
             end
-    end
+        end
    end
 end
 
