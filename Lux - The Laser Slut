@@ -1,10 +1,10 @@
 if myHero.charName ~= "Lux"  or not VIP_USER then return end
-local version = 0.4
+local version = 0.6
 local AUTOUPDATE = true
 local SCRIPT_NAME = "Lux - The Laser Slut"
 local SOURCELIB_URL = "https://raw.github.com/TheRealSource/public/master/common/SourceLib.lua"
 local SOURCELIB_PATH = LIB_PATH.."SourceLib.lua"
-
+-- thx to klokje and dekaron2
 require 'VPrediction'
 require 'SOW'
 require 'SourceLib'
@@ -113,6 +113,7 @@ function initComponents()
    Menu.Ads.KS:addParam("useR", "Use R", SCRIPT_PARAM_ONOFF, false)
    Menu.Ads.KS:addParam("useE", "Use E", SCRIPT_PARAM_ONOFF, false)
    Menu.Ads.KS:addParam("autoQ", "Auto Q", SCRIPT_PARAM_ONOFF, false)
+   Menu.Ads.KS:addParam("KSB", "Steal Buffs", SCRIPT_PARAM_ONOFF, false)
   Menu.Ads.KS:addParam("igniteRange", "Minimum range to cast Ignite", SCRIPT_PARAM_SLICE, 470, 0, 600, 0)
   Menu.Ads:addSubMenu("VIP", "VIP")
     Menu.Ads.VIP:addParam("skin", "Use custom skin", SCRIPT_PARAM_ONOFF, false)
@@ -140,6 +141,7 @@ function initComponents()
   
  PrintChat("<font color = \"#FA8844\">Lux - The Laser Slut by</font> <font color = \"#FF0740\">SyraX V"..version.."</font>")
 end
+
 function OnTick()
   target = GetCustomTarget()
 	targetMinions:update()
@@ -332,7 +334,10 @@ function KillSteal()
   end
 	if Menu.Ads.KS.ignite then
 		IgniteKS()
-	end
+  end
+  if Menu.Ads.KS.KSB then
+    KSBUFF()
+  end
 end
 
 -- Auto Ignite get the maximum range to avoid over kill --
@@ -537,3 +542,166 @@ if _G.ShowTextDraw then
 	end
   end
 end
+
+
+
+
+
+
+-- Steal the jungle mobs whit R Copyright!
+local JungleMobs = {}
+local JungleFocusMobs = {}
+
+
+
+
+
+
+local JungleMobNames = { 
+        ["wolf8.1.1"] = true,
+        ["wolf8.1.2"] = true,
+        ["YoungLizard7.1.2"] = true,
+        ["YoungLizard7.1.3"] = true,
+        ["LesserWraith9.1.1"] = true,
+        ["LesserWraith9.1.2"] = true,
+        ["LesserWraith9.1.4"] = true,
+        ["YoungLizard10.1.2"] = true,
+        ["YoungLizard10.1.3"] = true,
+        ["SmallGolem11.1.1"] = true,
+        ["wolf2.1.1"] = true,
+        ["wolf2.1.2"] = true,
+        ["YoungLizard1.1.2"] = true,
+        ["YoungLizard1.1.3"] = true,
+        ["LesserWraith3.1.1"] = true,
+        ["LesserWraith3.1.2"] = true,
+        ["LesserWraith3.1.4"] = true,
+        ["YoungLizard4.1.2"] = true,
+        ["YoungLizard4.1.3"] = true,
+        ["SmallGolem5.1.1"] = true,
+}
+
+local FocusJungleNames = {
+        ["Dragon6.1.1"] = true,
+        ["Worm12.1.1"] = true,
+        ["GiantWolf8.1.1"] = true,
+        ["AncientGolem7.1.1"] = true,
+        ["Wraith9.1.1"] = true,
+        ["LizardElder10.1.1"] = true,
+        ["Golem11.1.2"] = true,
+        ["GiantWolf2.1.1"] = true,
+        ["AncientGolem1.1.1"] = true,
+        ["Wraith3.1.1"] = true,
+        ["LizardElder4.1.1"] = true,
+        ["Golem5.1.2"] = true,
+		["GreatWraith13.1.1"] = true,
+		["GreatWraith14.1.1"] = true,
+}
+
+
+
+function GetJungleMob()
+	if JungleFocusMobs ~= nil and #JungleFocusMobs > 0 then
+        for i, Mob in ipairs(JungleFocusMobs) do
+                if ValidTarget(Mob, 3300) and Mob.name ~= nil then return Mob end
+        end
+    elseif JungleMobs ~= nil and #JungleMobs > 0 then
+        for i, Mob in ipairs(JungleMobs) do
+                if ValidTarget(Mob, 3300) and Mob.name ~= nil then return Mob end
+        end
+    else
+    	return nil
+    end
+end
+
+function OnCreateObj(obj)
+	if obj ~= nil then
+		if FocusJungleNames[obj.name] then
+			table.insert(JungleFocusMobs, obj)
+		elseif JungleMobNames[obj.name] then
+            table.insert(JungleMobs, obj)
+		end
+	end
+	if obj ~= nil and obj.type == "obj_AI_Minion" and obj.name ~= nil then
+		if obj.name == "TT_Spiderboss7.1.1" then Vilemaw = obj
+		elseif obj.name == "Worm12.1.1" then Nashor = obj
+		elseif obj.name == "Dragon6.1.1" then Dragon = obj
+		elseif obj.name == "AncientGolem1.1.1" then Golem1 = obj
+		elseif obj.name == "AncientGolem7.1.1" then Golem2 = obj
+		elseif obj.name == "LizardElder4.1.1" then Lizard1 = obj
+		elseif obj.name == "LizardElder10.1.1" then Lizard2 = obj end
+	end
+end
+
+function OnDeleteObj(obj)
+	if obj ~= nil then
+		for i, Mob in ipairs(JungleMobs) do
+			if obj.name == Mob.name then
+				table.remove(JungleMobs, i)
+			end
+		end
+		for i, Mob in ipairs(JungleFocusMobs) do
+			if obj.name == Mob.name then
+				table.remove(JungleFocusMobs, i)
+			end
+		end
+	end
+	if obj ~= nil and obj.name ~= nil then
+		if obj.name == "TT_Spiderboss7.1.1" then Vilemaw = nil
+		elseif obj.name == "Worm12.1.1" then Nashor = nil
+		elseif obj.name == "Dragon6.1.1" then Dragon = nil
+		elseif obj.name == "AncientGolem1.1.1" then Golem1 = nil
+		elseif obj.name == "AncientGolem7.1.1" then Golem2 = nil
+		elseif obj.name == "LizardElder4.1.1" then Lizard1 = nil
+		elseif obj.name == "LizardElder10.1.1" then Lizard2 = nil end
+	end
+end
+
+function checkDeadMonsters()
+	if Vilemaw ~= nil then if not Vilemaw.valid or Vilemaw.dead or Vilemaw.health <= 0 then Vilemaw = nil end end
+	if Nashor ~= nil then if not Nashor.valid or Nashor.dead or Nashor.health <= 0 then Nashor = nil end end
+	if Dragon ~= nil then if not Dragon.valid or Dragon.dead or Dragon.health <= 0 then Dragon = nil end end
+	if Golem1 ~= nil then if not Golem1.valid or Golem1.dead or Golem1.health <= 0 then Golem1 = nil end end
+	if Golem2 ~= nil then if not Golem2.valid or Golem2.dead or Golem2.health <= 0 then Golem2 = nil end end
+	if Lizard1 ~= nil then if not Lizard1.valid or Lizard1.dead or Lizard1.health <= 0 then Lizard1 = nil end end
+	if Lizard2 ~= nil then if not Lizard2.valid or Lizard2.dead or Lizard2.health <= 0 then Lizard2 = nil end end
+end
+
+--- wauw
+
+
+function KSBUFF()
+	TargetJungleMob = GetJungleMob()
+	if TargetJungleMob ~= nil and ValidTarget(TargetJungleMob, 3300) and GetDistance(TargetJungleMob, myHero) < 3300 then
+			if Rready and TargetJungleMob.health < getDmg("R", TargetJungleMob, myHero) then
+				CastSpell(_R, TargetJungleMob.x, TargetJungleMob.z)
+			end
+			
+	end
+end
+
+function ASLoadMinions()
+	for i = 1, objManager.maxObjects do
+		local obj = objManager:getObject(i)
+		if obj ~= nil and obj.type == "obj_AI_Minion" and obj.name ~= nil then
+			if obj.name == "TT_Spiderboss7.1.1" then Vilemaw = obj
+			elseif obj.name == "Worm12.1.1" then Nashor = obj
+			elseif obj.name == "Dragon6.1.1" then Dragon = obj
+			elseif obj.name == "AncientGolem1.1.1" then Golem1 = obj
+			elseif obj.name == "AncientGolem7.1.1" then Golem2 = obj
+			elseif obj.name == "LizardElder4.1.1" then Lizard1 = obj
+			elseif obj.name == "LizardElder10.1.1" then Lizard2 = obj end
+		end
+	end
+	for i = 0, objManager.maxObjects do
+		local object = objManager:getObject(i)
+		if object ~= nil and object.type == "obj_AI_Minion" and object.name ~= nil then
+			if FocusJungleNames[object.name] then
+				table.insert(JungleFocusMobs, object)
+			elseif JungleMobNames[object.name] then
+				table.insert(JungleMobs, object)
+			end
+		end
+	end
+end
+
+
