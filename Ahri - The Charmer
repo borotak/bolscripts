@@ -102,7 +102,7 @@ function initComponents()
     Menu.Jungleclear:addParam("useClearE", "Use E in Jungleclear", SCRIPT_PARAM_ONOFF, true)
  
  Menu:addSubMenu("["..myHero.charName.." - Additionals]", "Ads")
- Menu.Ads:addParam("Escp", "Escape Key Use whit spacebar", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("Z"))
+ Menu.Ads:addParam("Escp", "Escape Key Use with spacebar", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("Z"))
     Menu.Ads:addParam("autoLevel", "Auto-Level Spells", SCRIPT_PARAM_ONOFF, false)
    Menu.Ads:addSubMenu("Killsteal", "KS")
    Menu.Ads.KS:addParam("ignite", "Use Ignite", SCRIPT_PARAM_ONOFF, false)
