@@ -1,5 +1,5 @@
 if myHero.charName ~= "Ahri"  or not VIP_USER then return end
-local version = 0.1
+local version = 0.3
 local AUTOUPDATE = true
 local SCRIPT_NAME = "Ahri - The Charmer"
 require 'VPrediction'
