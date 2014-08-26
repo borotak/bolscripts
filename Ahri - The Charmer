@@ -224,7 +224,7 @@ function Harass()
 		if Menu.Harass.useE and ValidTarget(target, skills.SkillE.range) and skills.SkillE.ready then
 			local CastPosition,  HitChance,  Position = VP:GetLineCastPosition(target, skills.SkillE.delay, skills.SkillE.width, skills.SkillE.range, skills.SkillE.speed, myHero, true)
         if HitChance >= 2 and GetDistance(CastPosition) < 800 then
-				 CastSpell(_Q, CastPosition.x, CastPosition.z)
+				 CastSpell(_E, CastPosition.x, CastPosition.z)
          
 		end
 	end
