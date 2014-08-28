@@ -1,5 +1,5 @@
 if myHero.charName ~= "Lux"  or not VIP_USER then return end
-local version = 0.6
+local version = 0.9
 local AUTOUPDATE = true
 local SCRIPT_NAME = "Lux - The Laser Slut"
 local SOURCELIB_URL = "https://raw.github.com/TheRealSource/public/master/common/SourceLib.lua"
@@ -13,6 +13,7 @@ require 'Collision'
 local ignite, igniteReady = nil, nil
 local ts = nil
 local VP = nil
+local ADC, lowGuy
 local eRange
 local qRange
 local rRange
@@ -32,6 +33,40 @@ local skills = {
 --[[ Slots Itens ]]--
 local tiamatSlot, hydraSlot, youmuuSlot, bilgeSlot, bladeSlot, dfgSlot, divineSlot = nil, nil, nil, nil, nil, nil, nil
 local tiamatReady, hydraReady, youmuuReady, bilgeReady, bladeReady, dfgReady, divineReady = nil, nil, nil, nil, nil, nil, nil
+
+-- champs
+Champions = {
+    ["Katarina"] = {
+    	spells = {
+    		["KatarinaR"] = {name = "Death Lotus"}
+    	}
+    },
+    ["Nunu"] = {
+    	spells = {
+    		["AbsoluteZero"] = {name = "Absolute Zero"}
+    	}
+    },
+    ["Karthus"] = {
+    	spells = {
+    		["KarthusFallenOne"] = {name = "Requiem"}
+    	}
+    },
+    ["FiddleSticks"] = {
+    	spells = {
+    		["Crowstorm"] = {name = "Crowstorm"}
+    	}
+    },
+    ["Malzahar"] = {
+    	spells = {
+    		["AlZaharNetherGrasp"] = {name = "NetherGrasp"}
+    	}
+    },
+    ["Galio"] = {
+    	spells = {
+    		["GalioIdolOfDurand"] = {name = "Idol of Durand"}
+    	}
+    },
+}
 
 --[[Auto Attacks]]--
 local lastBasicAttack = 0
@@ -108,6 +143,9 @@ function initComponents()
  
  Menu:addSubMenu("["..myHero.charName.." - Additionals]", "Ads")
     Menu.Ads:addParam("autoLevel", "Auto-Level Spells", SCRIPT_PARAM_ONOFF, false)
+  --  Menu.Ads:addParam("Shield", "Shield Ally", SCRIPT_PARAM_ONOFF, false)
+   Menu.Ads:addParam("Shieldd", "Shiel your self", SCRIPT_PARAM_ONOFF, false)
+    Menu.Ads:addParam("NOVA", "Cast second E", SCRIPT_PARAM_ONOFF, false)
    Menu.Ads:addSubMenu("Killsteal", "KS")
    Menu.Ads.KS:addParam("ignite", "Use Ignite", SCRIPT_PARAM_ONOFF, false)
    Menu.Ads.KS:addParam("useR", "Use R", SCRIPT_PARAM_ONOFF, false)
@@ -142,6 +180,8 @@ function initComponents()
  PrintChat("<font color = \"#FA8844\">Lux - The Laser Slut by</font> <font color = \"#FF0740\">SyraX V"..version.."</font>")
 end
 
+local objE = nil
+local Damage = false
 function OnTick()
   target = GetCustomTarget()
 	targetMinions:update()
@@ -151,12 +191,22 @@ function OnTick()
 	KillSteal()
   DamageCalculation()
   OnGapclose(target)
-
+  
 	if Menu.Ads.VIP.skin and VIP_USER and skinChanged() then
 		GenModelPacket("lux", Menu.Ads.VIP.skin1)
 		lastSkin = Menu.Ads.VIP.skin1
 	end
-
+  if Menu.Ads.NOVA then
+		for i = 1, heroManager.iCount do
+			local hero = heroManager:GetHero(i)
+			local radius = skills.SkillE.range + VP:GetHitBox(hero)
+			if hero.team ~= myHero.team and objE ~= nil and ValidTarget(hero) and GetDistanceSqr(objE,hero) <= radius * radius then
+				CastSpell(_E)
+			end
+		end
+	end
+  
+    
 	if Menu.Ads.autoLevel then
 		AutoLevel()
 	end
@@ -338,6 +388,9 @@ function KillSteal()
   if Menu.Ads.KS.KSB then
     KSBUFF()
   end
+  if Menu.Ads.Shield then
+    AutoShield()
+  end
 end
 
 -- Auto Ignite get the maximum range to avoid over kill --
@@ -363,7 +416,7 @@ function hardeultiKS()
 
 		if Rready and target ~= nil and ValidTarget(target, skills.SkillR.range) and target.health < rDmg then
       local CastPosition,  HitChance,  Position = VP:GetCircularCastPosition(target, skills.SkillR.delay, skills.SkillR.width, skills.SkillR.range, skills.SkillR.speed, myHero, false)
-            if HitChance >= 1 and GetDistance(CastPosition) < 3340 then
+            if HitChance >= 2 and GetDistance(CastPosition) < 3300 then
 				CastSpell(_R, CastPosition.x, CastPosition.z)
           end
      
@@ -558,43 +611,43 @@ local JungleFocusMobs = {}
 
 
 local JungleMobNames = { 
-        ["wolf8.1.1"] = true,
-        ["wolf8.1.2"] = true,
-        ["YoungLizard7.1.2"] = true,
-        ["YoungLizard7.1.3"] = true,
-        ["LesserWraith9.1.1"] = true,
-        ["LesserWraith9.1.2"] = true,
-        ["LesserWraith9.1.4"] = true,
-        ["YoungLizard10.1.2"] = true,
-        ["YoungLizard10.1.3"] = true,
-        ["SmallGolem11.1.1"] = true,
-        ["wolf2.1.1"] = true,
-        ["wolf2.1.2"] = true,
-        ["YoungLizard1.1.2"] = true,
-        ["YoungLizard1.1.3"] = true,
-        ["LesserWraith3.1.1"] = true,
-        ["LesserWraith3.1.2"] = true,
-        ["LesserWraith3.1.4"] = true,
-        ["YoungLizard4.1.2"] = true,
-        ["YoungLizard4.1.3"] = true,
-        ["SmallGolem5.1.1"] = true,
+      --  ["wolf8.1.1"] = true,
+       -- ["wolf8.1.2"] = true,
+        --["YoungLizard7.1.2"] = true,
+       -- ["YoungLizard7.1.3"] = true,
+       -- ["LesserWraith9.1.1"] = true,
+     --   ["LesserWraith9.1.2"] = true,
+       -- ["LesserWraith9.1.4"] = true,
+       -- ["YoungLizard10.1.2"] = true,
+     --   ["YoungLizard10.1.3"] = true,
+     --   ["SmallGolem11.1.1"] = true,
+     --   ["wolf2.1.1"] = true,
+    --    ["wolf2.1.2"] = true,
+   ---     ["YoungLizard1.1.2"] = true,
+    --  -  ["YoungLizard1.1.3"] = true,
+     --   ["LesserWraith3.1.1"] = true,
+     --   ["LesserWraith3.1.2"] = true,
+   --    ["LesserWraith3.1.4"] = true,
+   --     ["YoungLizard4.1.2"] = true,
+    --   ["YoungLizard4.1.3"] = true,
+      --  ["SmallGolem5.1.1"] = true,
 }
 
 local FocusJungleNames = {
         ["Dragon6.1.1"] = true,
         ["Worm12.1.1"] = true,
-        ["GiantWolf8.1.1"] = true,
+      --  ["GiantWolf8.1.1"] = true,
         ["AncientGolem7.1.1"] = true,
-        ["Wraith9.1.1"] = true,
+      --  ["Wraith9.1.1"] = true,
         ["LizardElder10.1.1"] = true,
-        ["Golem11.1.2"] = true,
-        ["GiantWolf2.1.1"] = true,
+      --  ["Golem11.1.2"] = true,
+     --   ["GiantWolf2.1.1"] = true,
         ["AncientGolem1.1.1"] = true,
-        ["Wraith3.1.1"] = true,
+     --   ["Wraith3.1.1"] = true,
         ["LizardElder4.1.1"] = true,
-        ["Golem5.1.2"] = true,
-		["GreatWraith13.1.1"] = true,
-		["GreatWraith14.1.1"] = true,
+     --   ["Golem5.1.2"] = true,
+		--["GreatWraith13.1.1"] = true,
+	--	["GreatWraith14.1.1"] = true,
 }
 
 
@@ -604,16 +657,19 @@ function GetJungleMob()
         for i, Mob in ipairs(JungleFocusMobs) do
                 if ValidTarget(Mob, 3300) and Mob.name ~= nil then return Mob end
         end
-    elseif JungleMobs ~= nil and #JungleMobs > 0 then
-        for i, Mob in ipairs(JungleMobs) do
-                if ValidTarget(Mob, 3300) and Mob.name ~= nil then return Mob end
-        end
+    --elseif JungleMobs ~= nil and #JungleMobs > 0 then
+       -- for i, Mob in ipairs(JungleMobs) do
+                --if ValidTarget(Mob, 3300) and Mob.name ~= nil then return Mob end
+      --  end
     else
     	return nil
     end
 end
 
 function OnCreateObj(obj)
+  if obj.name:find("LuxLightstrike_tar_green") then
+		objE = obj
+	end
 	if obj ~= nil then
 		if FocusJungleNames[obj.name] then
 			table.insert(JungleFocusMobs, obj)
@@ -630,9 +686,13 @@ function OnCreateObj(obj)
 		elseif obj.name == "LizardElder4.1.1" then Lizard1 = obj
 		elseif obj.name == "LizardElder10.1.1" then Lizard2 = obj end
 	end
+
 end
 
 function OnDeleteObj(obj)
+  if obj.name:find("LuxLightstrike_tar_green") or (objE ~= nil and obj.name == objE.name) then
+		objE = nil
+	end
 	if obj ~= nil then
 		for i, Mob in ipairs(JungleMobs) do
 			if obj.name == Mob.name then
@@ -704,4 +764,83 @@ function ASLoadMinions()
 	end
 end
 
+local injectedd = false
+local mostDamage = 0
+local lowestHealth = math.huge
+function AutoShield()
+	if injectedd and Wready then
+		--Find really low health guy
+		for i=1, heroManager.iCount do
+			local ally = heroManager:getHero(i)
+			if ally.health < lowestHealth and ally.team ~= TEAM_ENEMY and GetDistance(myHero, ally) < 1100 and Wready then
+				lowGuy = ally
+				lowestHealth = ally.health
+			end
+		end
+		if Wready and lowGuy ~= nil and GetDistance(myHero, ally) < 1100 and lowGuy ~= myHero and lowGuy.maxHealth * .16 >= lowGuy.health then 
+			CastSpell(_W, lowGuy) 
+     
+		end
 
+		--Omg is the low health person me?
+		if myHero.maxHealth * .05 >= myHero.health and Wready then
+			CastSpell(_W, myHero)
+    
+		end
+
+		--Find ADC
+		for i=1, heroManager.iCount do
+			local ally = heroManager:getHero(i)
+			if ally.totalDamage > mostDamage and ally.team ~= TEAM_ENEMY and GetDistance(myHero, ally) < 1100 and Wready then
+				ADC = ally
+				mostDamage = ally.totalDamage
+			end
+		end
+		if Wready and ADC ~= nil and GetDistance(myHero, ally) < 1100 and ADC ~= myHero then 
+			CastSpell(_W, ADC) 
+      
+		end
+	end
+end
+local typeshield
+local spellslot
+local range = 0
+local Shield = false
+local ally = nil
+ 
+ -- voor laterlocal dmgpercent = skilldamage*100/target.health
+--	local dmgneeded = dmgpercent >= configused.mindmgpercent
+	--local hpneeded = configused.maxhppercent >= (target.health-skilldamage)*100/target.maxHealth
+function OnProcessSpell(object, spell)
+  if object.team ~= myHero.team and not myHero.dead and not object.name:find("Minion_") or object.name:find("Odin") then
+    local shieldREADY = typeshield ~= nil and myHero:CanUseSpell(spellslot) == READY
+    local RaakEest = false -- dit was eerst hitfirst
+    local shieldtarget,SlastDistance,SLastDmgPercent = nil,nil,nil
+      BShield,SShield,shield,CC = false,false,false,false
+      local shottype,radius,masdistance = 0,0,0
+        if object.type =="AIHeroClient" then
+          spelltype, casttype = getSpellType(object, spell.name)
+          if spelltype == "BAttack" or spelltype == "CAttack" then
+            Shield = false
+          elseif spell.name:find("SummonerDot") then
+           
+           Shield = true
+          elseif spelltype =="Q" or spelltype == "W" or spelltype == "R" or spelltype == "E" or spelltype == "P" or spelltype == "QM" or spelltype == "WM" or spelltype == "EM" then
+           Shield = true
+           
+            if Shield and Menu.Ads.Shieldd then
+                if Wready and target ~= nil and ValidTarget(target, skills.SkillW.range) then
+    CastSpell(_W, target.x, target.z)
+
+
+                  
+                end
+            end
+          end
+        end
+  end
+  end
+
+
+
+  
