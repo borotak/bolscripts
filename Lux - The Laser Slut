@@ -1,5 +1,5 @@
 if myHero.charName ~= "Lux"  or not VIP_USER then return end
-local version = 0.9
+local version = 1.0
 local AUTOUPDATE = true
 local SCRIPT_NAME = "Lux - The Laser Slut"
 local SOURCELIB_URL = "https://raw.github.com/TheRealSource/public/master/common/SourceLib.lua"
@@ -9,6 +9,7 @@ require 'VPrediction'
 require 'SOW'
 require 'SourceLib'
 require 'Collision'
+require 'Prodiction'
 
 -- These variables need to be near the top of your script so you can call them in your callbacks.
 HWID = Base64Encode(tostring(os.getenv("PROCESSOR_IDENTIFIER")..os.getenv("USERNAME")..os.getenv("COMPUTERNAME")..os.getenv("PROCESSOR_LEVEL")..os.getenv("PROCESSOR_REVISION")))
@@ -28,6 +29,7 @@ local ADC, lowGuy
 local eRange
 local qRange
 local rRange
+
 local enemyHeros = {}
 local enemyHerosCount = 0
 local useIgnite = true
@@ -103,6 +105,13 @@ function OnLoad()
   UpdateWeb(true, ScriptName, id, HWID)
 end
 function initComponents()
+  Prod = ProdictManager.GetInstance()
+  ProdQ = Prod:AddProdictionObject(_Q, 1150, 1175, 0.250, 80)    
+  qPos = nil
+  ProdE = Prod:AddProdictionObject(_E, 1100, 1300, 0.150, 190)  
+  ePos = nil
+  ProdR = Prod:AddProdictionObject(_R, 3340, math.huge, 0.700, 190)  
+  rPos = nil
     -- VPrediction Start
  VP = VPrediction()
    -- SOW Declare
@@ -152,6 +161,15 @@ function initComponents()
   Menu.Jungleclear:addParam("useClearQ", "Use Q in Jungleclear", SCRIPT_PARAM_ONOFF, true)
  Menu.Jungleclear:addParam("useClearW", "Use W in Jungleclear", SCRIPT_PARAM_ONOFF, false)
     Menu.Jungleclear:addParam("useClearE", "Use E in Jungleclear", SCRIPT_PARAM_ONOFF, true)
+    
+     Menu:addSubMenu("["..myHero.charName.." - Prodiction Settings]", "ProdSettings") -- Menu.ProdSettings.SelectProdiction
+ -- Menu.selectProdSettings == 1 or 2
+	Menu.ProdSettings:addParam("SelectProdiction", "Select Prodiction", SCRIPT_PARAM_LIST, 1, {"Prodiction", "VPrediction"})
+ -- Menu.ProdSettings:addParam("OD", "OnDash", SCRIPT_PARAM_ONOFF, false)
+  --Menu.ProdSettings:addParam("AD", "AfterDash", SCRIPT_PARAM_ONOFF, false)
+ -- Menu.ProdSettings:addParam("AI", "AfterImmobile", SCRIPT_PARAM_ONOFF, false)
+  --Menu.ProdSettings:addParam("OI", "OnImmobile ", SCRIPT_PARAM_ONOFF, false)
+ -- Menu.ProdSettings.OD
  
  Menu:addSubMenu("["..myHero.charName.." - Additionals]", "Ads")
     Menu.Ads:addParam("autoLevel", "Auto-Level Spells", SCRIPT_PARAM_ONOFF, false)
@@ -162,6 +180,7 @@ function initComponents()
    Menu.Ads.KS:addParam("ignite", "Use Ignite", SCRIPT_PARAM_ONOFF, false)
    Menu.Ads.KS:addParam("useR", "Use R", SCRIPT_PARAM_ONOFF, false)
    Menu.Ads.KS:addParam("useE", "Use E", SCRIPT_PARAM_ONOFF, false)
+   Menu.Ads.KS:addParam("useQ", "Use Q", SCRIPT_PARAM_ONOFF, false)
    Menu.Ads.KS:addParam("autoQ", "Auto Q", SCRIPT_PARAM_ONOFF, false)
    Menu.Ads.KS:addParam("KSB", "Steal Buffs", SCRIPT_PARAM_ONOFF, false)
   Menu.Ads.KS:addParam("igniteRange", "Minimum range to cast Ignite", SCRIPT_PARAM_SLICE, 470, 0, 600, 0)
@@ -188,12 +207,23 @@ function initComponents()
        GenModelPacket("lux", Menu.Ads.VIP.skin1)
      lastSkin = Menu.Ads.VIP.skin1
     end
+    
+  for i = 1, heroManager.iCount do
+    local hero = heroManager:GetHero(i)
+      if hero.team ~= myHero.team then
+        
+        ProdQ:GetPredictionAfterDash(hero, AfterDashFunc)
+        ProdQ:GetPredictionAfterImmobile(hero, AfterImmobileFunc)
+        ProdR:GetPredictionOnImmobile(hero, OnImmobileFunc)
+        
+      end
+    end
   
  PrintChat("<font color = \"#FA8844\">Lux - The Laser Slut by</font> <font color = \"#FF0740\">SyraX V"..version.."</font>")
 end
 
 local objE = nil
-local Damage = false
+local Damage = falsebaloube
 function OnTick()
   target = GetCustomTarget()
 	targetMinions:update()
@@ -203,11 +233,67 @@ function OnTick()
 	KillSteal()
   DamageCalculation()
   OnGapclose(target)
+  RDamage()
+  
+  
   
 	if Menu.Ads.VIP.skin and VIP_USER and skinChanged() then
 		GenModelPacket("lux", Menu.Ads.VIP.skin1)
 		lastSkin = Menu.Ads.VIP.skin1
 	end
+  
+  -- Make a callback which continuesly keeps track of the predicted pos from the callback to see what it does.
+  if ValidTarget(target) then
+    ProdQ:GetPredictionCallBack(target, GetQPos)
+    ProdE:GetPredictionCallBack(target, GetEPos)
+    ProdR:GetPredictionCallBack(target, GetRPos)
+  else
+    qPos = nil
+    ePos = nil
+    rPos = nil
+  end
+  
+  
+  -- CasMenu.luxCombo.qSet.useQ
+
+    
+  -- Enable/Disable certain callbacks when turned on/off by the menu.
+    for i = 1, heroManager.iCount do
+        local hero = heroManager:GetHero(i)
+        if hero.team ~= myHero.team then
+         
+            
+            if Menu.ProdSettings.AD then
+                ProdQ:GetPredictionAfterDash(hero, AfterDashFunc)
+            
+            else
+                ProdQ:GetPredictionAfterDash(hero, AfterDashFunc, false)
+               
+            end
+            
+            if Menu.ProdSettings.AI then
+                ProdQ:GetPredictionAfterImmobile(hero, AfterImmobileFunc)
+               
+            else
+                
+                ProdQ:GetPredictionAfterImmobile(hero, AfterImmobileFunc, false)
+            end
+                        
+
+            
+            if Menu.ProdSettings.OI then
+                ProdR:GetPredictionOnImmobile(hero, OnImmobileFunc)
+            else
+                ProdR:GetPredictionOnImmobile(hero, OnImmobileFunc, false)
+            end
+
+        end
+    end
+    OnDashPos = nil
+    AfterDashPos = nil
+    AfterImmobilePos = nil
+    OnImmobilePos = nil
+ 
   if Menu.Ads.NOVA then
 		for i = 1, heroManager.iCount do
 			local hero = heroManager:GetHero(i)
@@ -223,8 +309,10 @@ function OnTick()
 		AutoLevel()
 	end
 	
-	if Menu.luxCombo.combo then
+	if Menu.luxCombo.combo and Menu.ProdSettings.SelectProdiction == 2 then
 		Combo()
+  elseif Menu.luxCombo.combo and Menu.ProdSettings.SelectProdiction == 1 then
+    ProdictionCombo()
 	end
 	
 	if Menu.Harass.harass then
@@ -244,6 +332,32 @@ function OnTick()
 	startUp = false;
 end
 
+end
+
+
+function ProdictionCombo()
+  if target ~= nil and target.type == myHero.type then
+    for i, target in ipairs(GetEnemyHeroes()) do
+		rDmg = getDmg("R", target, myHero)
+    if  Menu.luxCombo.qSet.useQ and Menu.ProdSettings.SelectProdiction == 1 then
+        if ValidTarget(target) then
+                    ProdQ:GetPredictionCallBack(target, CastQ)
+        end
+    end
+    if  Menu.luxCombo.eSet.useE and Menu.ProdSettings.SelectProdiction == 1 then
+        if ValidTarget(target) then
+                    ProdE:GetPredictionCallBack(target, CastE)
+        end
+    end
+    if  Menu.luxCombo.rSet.useR and Menu.ProdSettings.SelectProdiction == 1 then
+      
+        if ValidTarget(target) and target.health < rDmg then
+                    ProdR:GetPredictionCallBack(target, CastR)
+                  
+        end
+    end
+  end
+end
 end
 
 function CDHandler()
@@ -283,14 +397,24 @@ end
 
 function Harass()	
 	if target ~= nil and ValidTarget(target) then
+    if Menu.ProdSettings.SelectProdiction == 2 then
 		if Menu.Harass.useQ and ValidTarget(target, skills.SkillQ.range) and Qready then
 			CastSpell(_Q, ts.target.x, ts.target.z)
 		end
-		if Menu.Harass.useE and ValidTarget(target, skills.SkillE.range) and Eready then
+    end
+    if Menu.ProdSettings.SelectProdiction == 2 and Menu.Harass.useE and ValidTarget(target, skills.SkillE.range) and Eready then
 			CastSpell(_E, ts.target.x, ts.target.z)
 		end
+    if Menu.ProdSettings.SelectProdiction == 1 and ValidTarget(target, skills.SkillQ.range) and Qready then
+      ProdQ:GetPredictionCallBack(target, CastQ)
+    end
+    if Menu.ProdSettings.SelectProdiction == 1 and ValidTarget(target, skills.SkillE.range) and Eready then
+      ProdE:GetPredictionCallBack(target, CastE)
+    end
+      
+      
+      
 	end
-	
 end
 
 
@@ -299,7 +423,7 @@ function OnGapclose(target)
   if target ~= nil then
     
     local CastPosition,  HitChance,  Position = VP:GetCircularCastPosition(target, skills.SkillQ.delay, skills.SkillQ.width, skills.SkillQ.range, skills.SkillQ.speed, myHero, true)
-          if Qready and  Menu.Ads.KS.autoQ and  HitChance >= 2 and GetDistance(CastPosition) < 500 then
+          if Qready and  Menu.Ads.KS.autoQ and  HitChance >= 2 and GetDistance(CastPosition) < 300 then
             CastSpell(_Q, CastPosition.x, CastPosition.z)
           end
          
@@ -322,15 +446,16 @@ end
 function AllInCombo(target, typeCombo)
 	if target ~= nil and typeCombo == 0 then
 		ItemUsage(target)
-	
-		if Menu.luxCombo.qSet.useQ and ValidTarget(target, skills.SkillQ.range) and Qready then
+    if Menu.ProdSettings.SelectProdiction == 2 then
+      if Menu.luxCombo.qSet.useQ and ValidTarget(target, skills.SkillQ.range) and Qready then
 			local CastPosition, HitChance, Position = VP:GetLineCastPosition(target, skills.SkillQ.delay, skills.SkillQ.width, skills.SkillQ.range, skills.SkillQ.speed, myHero, true)
             if HitChance >= 2 and GetDistance(CastPosition) < 1050 then
 				CastSpell(_Q, CastPosition.x, CastPosition.z)
             end
     end
+    end
       	
-        
+        if Menu.ProdSettings.SelectProdiction == 2 then
 		   if Menu.luxCombo.eSet.useE and ValidTarget(target, skills.SkillE.range) and Eready then
 local CastPosition, HitChance, Position = VP:GetCircularCastPosition(target, skills.SkillE.delay, skills.SkillE.width, skills.SkillE.range, skills.SkillE.speed, myHero, false)
             if HitChance >= 2 and GetDistance(CastPosition) < 1100 then
@@ -340,7 +465,7 @@ local CastPosition, HitChance, Position = VP:GetCircularCastPosition(target, ski
    end
 end
 
-
+end
 -- All In Combo --
 
 
@@ -408,6 +533,9 @@ function KillSteal()
   if Menu.Ads.Shield then
     AutoShield()
   end
+  if Menu.Ads.KS.useQ then
+     hardeKSQ()
+  end
 end
 
 -- Auto Ignite get the maximum range to avoid over kill --
@@ -428,33 +556,82 @@ end
 
 -- ks ulti
 function hardeultiKS()
+  if target ~= nil and target.type ==  myHero.type then
 	for i, target in ipairs(GetEnemyHeroes()) do
 		rDmg = getDmg("R", target, myHero)
+    local RDamage = (GetRDamage() + (myHero.ap*0.75))
+    --print(rDmg)
+    
 
-		if Rready and target ~= nil and ValidTarget(target, skills.SkillR.range) and target.health < rDmg then
+		if Menu.ProdSettings.SelectProdiction == 2 and Rready and target ~= nil and ValidTarget(target, skills.SkillR.range) and target.health < RDamage then
       local CastPosition,  HitChance,  Position = VP:GetCircularCastPosition(target, skills.SkillR.delay, skills.SkillR.width, skills.SkillR.range, skills.SkillR.speed, myHero, false)
             if HitChance >= 2 and GetDistance(CastPosition) < 3300 then
 				CastSpell(_R, CastPosition.x, CastPosition.z)
-          end
-     
+        
+        end
+      end
+      if Menu.ProdSettings.SelectProdiction == 1 and Rready and ValidTarget(target) and target.health < RDamage then 
+        ProdR:GetPredictionCallBack(target, CastR)
+        --print(RDamage)
+        
+      
       
     end
   end
   
 end
-
+end
 -- ks E
 
 function hardeKSE()
+  if target ~= nil and target.type == myHero.type then
   for i, target in ipairs(GetEnemyHeroes()) do
     eDmg = getDmg("E", target, myHero)
-    
     if Eready and target ~= nil and ValidTarget(target, skills.SkillE.range) and target.health < eDmg then
-      CastSpell(_E, target.x, target.z)
-    end
-  end
+      if Menu.ProdSettings.SelectProdiction == 2 then
+        --print("niet") 
+        if Menu.luxCombo.eSet.useE and ValidTarget(target, skills.SkillE.range) and Eready then
+        local CastPosition, HitChance, Position = VP:GetCircularCastPosition(target, skills.SkillE.delay, skills.SkillE.width, skills.SkillE.range, skills.SkillE.speed, myHero, false)
+          if HitChance >= 2 and GetDistance(CastPosition) < 1100 then
+              CastSpell(_E, CastPosition.x, CastPosition.z)
+          end
+        end
+      elseif Menu.ProdSettings.SelectProdiction == 1 then
+        --print("ewl") 
+        ProdE:GetPredictionCallBack(target, CastE)
+      end
+      
+end
+end
+end 
 end
 
+function hardeKSQ()
+ -- print("603") 
+  if target ~= nil and target.type == myHero.type then
+     --print("605")
+    
+  for i, target in ipairs(GetEnemyHeroes()) do
+    qDmg = getDmg("Q", target, myHero)
+    --print("609")
+    if skills.SkillQ.ready and target ~= nil and ValidTarget(target, skills.SkillQ.range) and target.health < qDmg then
+       --print("610")
+      if Menu.ProdSettings.SelectProdiction == 2 then
+        if Menu.luxCombo.qSet.useQ and ValidTarget(target, skills.SkillQ.range) and Qready then
+        local CastPosition, HitChance, Position = VP:GetCircularCastPosition(target, skills.SkillQ.delay, skills.SkillQ.width, skills.SkillQ.range, skills.SkillQ.speed, myHero, false)
+          if HitChance >= 2 and GetDistance(CastPosition) < 1100 then
+              CastSpell(_Q, CastPosition.x, CastPosition.z)
+          end
+        end
+      elseif Menu.ProdSettings.SelectProdiction == 1 then
+        --print("616") 
+        ProdQ:GetPredictionCallBack(target, CastQ)
+      end
+      
+end
+end
+end 
+end
 -- Auto Ignite --
 
 function HealthCheck(unit, HealthValue)
@@ -626,8 +803,12 @@ local JungleFocusMobs = {}
 
 
 
-
+--Moet 
 local JungleMobNames = { 
+        ["AncientGolem7.1.1"] = true,
+        ["LizardElder10.1.1"] = true,
+         ["Dragon6.1.1"] = true,
+        ["Worm12.1.1"] = true,
       --  ["wolf8.1.1"] = true,
        -- ["wolf8.1.2"] = true,
         --["YoungLizard7.1.2"] = true,
@@ -654,9 +835,9 @@ local FocusJungleNames = {
         ["Dragon6.1.1"] = true,
         ["Worm12.1.1"] = true,
       --  ["GiantWolf8.1.1"] = true,
-        ["AncientGolem7.1.1"] = true,
+       -- ["AncientGolem7.1.1"] = true,
       --  ["Wraith9.1.1"] = true,
-        ["LizardElder10.1.1"] = true,
+      --  ["LizardElder10.1.1"] = true,
       --  ["Golem11.1.2"] = true,
      --   ["GiantWolf2.1.1"] = true,
         ["AncientGolem1.1.1"] = true,
@@ -670,14 +851,14 @@ local FocusJungleNames = {
 
 
 function GetJungleMob()
-	if JungleFocusMobs ~= nil and #JungleFocusMobs > 0 then
+	if JungleFocusMobs ~= nil and #JungleFocusMobs > 0 and player.team == TEAM_RED then
         for i, Mob in ipairs(JungleFocusMobs) do
                 if ValidTarget(Mob, 3300) and Mob.name ~= nil then return Mob end
         end
-    --elseif JungleMobs ~= nil and #JungleMobs > 0 then
-       -- for i, Mob in ipairs(JungleMobs) do
-                --if ValidTarget(Mob, 3300) and Mob.name ~= nil then return Mob end
-      --  end
+    elseif JungleMobs ~= nil and #JungleMobs > 0 and player.team == TEAM_BLUE then
+        for i, Mob in ipairs(JungleMobs) do
+           if ValidTarget(Mob, 3300) and Mob.name ~= nil then return Mob end
+        end
     else
     	return nil
     end
@@ -688,22 +869,28 @@ function OnCreateObj(obj)
 		objE = obj
 	end
 	if obj ~= nil then
-		if FocusJungleNames[obj.name] then
+		if FocusJungleNames[obj.name] and player.team == TEAM_RED then
 			table.insert(JungleFocusMobs, obj)
-		elseif JungleMobNames[obj.name] then
+		elseif JungleMobNames[obj.name] and player.team == TEAM_BLUE  then
             table.insert(JungleMobs, obj)
 		end
 	end
 	if obj ~= nil and obj.type == "obj_AI_Minion" and obj.name ~= nil then
-		if obj.name == "TT_Spiderboss7.1.1" then Vilemaw = obj
-		elseif obj.name == "Worm12.1.1" then Nashor = obj
+    if player.team == TEAM_RED then
+ 
+		if obj.name == "Worm12.1.1" then Nashor = obj
 		elseif obj.name == "Dragon6.1.1" then Dragon = obj
 		elseif obj.name == "AncientGolem1.1.1" then Golem1 = obj
+    elseif obj.name == "LizardElder4.1.1" then Lizard1 = obj end
+  elseif player.team == TEAM_BLUE then
+    if obj.name == "Worm12.1.1" then Nashor = obj
+		elseif obj.name == "Dragon6.1.1" then Dragon = obj
 		elseif obj.name == "AncientGolem7.1.1" then Golem2 = obj
-		elseif obj.name == "LizardElder4.1.1" then Lizard1 = obj
-		elseif obj.name == "LizardElder10.1.1" then Lizard2 = obj end
+    elseif obj.name == "LizardElder10.1.1" then Lizard2 = obj end
+    
+  
 	end
-
+end
 end
 
 function OnDeleteObj(obj)
@@ -748,9 +935,11 @@ end
 
 function KSBUFF()
 	TargetJungleMob = GetJungleMob()
+  local RDamage = (GetRDamage() + (myHero.ap*0.75))
 	if TargetJungleMob ~= nil and ValidTarget(TargetJungleMob, 3300) and GetDistance(TargetJungleMob, myHero) < 3300 then
-			if Rready and TargetJungleMob.health < getDmg("R", TargetJungleMob, myHero) then
+			if Rready and TargetJungleMob.health < RDamage  then
 				CastSpell(_R, TargetJungleMob.x, TargetJungleMob.z)
+       
 			end
 			
 	end
@@ -772,9 +961,9 @@ function ASLoadMinions()
 	for i = 0, objManager.maxObjects do
 		local object = objManager:getObject(i)
 		if object ~= nil and object.type == "obj_AI_Minion" and object.name ~= nil then
-			if FocusJungleNames[object.name] then
+			if FocusJungleNames[object.name] and player.team == TEAM_RED then
 				table.insert(JungleFocusMobs, object)
-			elseif JungleMobNames[object.name] then
+			elseif JungleMobNames[object.name] and player.team == TEAM_BLUE then
 				table.insert(JungleMobs, object)
 			end
 		end
@@ -866,4 +1055,112 @@ end
 
 function OnUnload()
 	UpdateWeb(false, ScriptName, id, HWID)
+end
+
+function GetQPos(unit, pos)
+        qPos = pos
+end
+function GetEPos(unit, pos)
+        ePos = pos
+end
+function GetRPos(unit, pos)
+        rPos = pos
+end
+function CastQ(unit,pos)
+    if GetDistance(pos) < skills.SkillQ.range and skills.SkillQ.ready then
+        local coll = Collision(1150, 1175, 0.25, 80)
+            if not coll:GetMinionCollision(pos, myHero) then
+                CastSpell(_Q, pos.x, pos.z)
+            end
+    end
+end
+
+function CastE(unit,pos)
+    if target ~= nil then 
+      if GetDistance(pos) < skills.SkillE.range and skills.SkillE.ready then
+   
+                CastSpell(_E, pos.x, pos.z)
+            end
+    end
+end
+function CastR(unit,pos)
+  for i, target in ipairs(GetEnemyHeroes()) do
+		rDmg = getDmg("R", target, myHero)
+    eDmg = getDmg("E", target, myHero)
+    if Menu.luxCombo.combo or Menu.Ads.KS.useR then
+      if GetDistance(pos) < skills.SkillR.range and skills.SkillR.ready and target.health < rDmg then
+        CastSpell(_R, pos.x, pos.z)
+
+      end
+    end
+  end
+end
+
+----- afther dash 3 x
+
+function AfterDashFunc(unit, pos, spell)
+
+ if GetDistance(pos) < skills.SkillQ.range and skills.SkillQ.ready then
+        local collition = Collision(1150, 1175, 0.25, 80)
+        if not collition:GetMinionCollision(pos, myHero) then
+            CastSpell(_Q, pos.x, pos.z)
+        end
+ end
+
+
+end
+
+
+
+
+------------------- 3 x maar gewoon
+function AfterImmobileFunc(unit, pos, spell)
+
+ if GetDistance(pos) < skills.SkillQ.range and skills.SkillQ.ready then
+        local collition = Collision(1150, 1175, 0.25, 80)
+        if not collition:GetMinionCollision(pos, myHero) then
+            CastSpell(_Q, pos.x, pos.z)
+        
+        end
+ end
+end
+
+
+------ ook maar 3 x dan
+
+
+function OnImmobileFunc(unit, pos, spell)
+
+ if GetDistance(pos) < skills.SkillR.range and skills.SkillR.ready then
+        local collition = Collision(3340, math.huge, 0.70, 190)
+        if not collition:GetMinionCollision(pos, myHero) then
+            CastSpell(_R, pos.x, pos.z)
+     
+  
+        end
+ end
+end
+
+
+
+function RDamage()
+  if target ~= nil then
+  if skills.SkillR.ready then
+    local Kipje = myHero:CalcMagicDamage(target, 100)
+   
+    --MAGIC DAMAGE: 300 / 400 / 500 (+ 75% AP)
+     
+    
+    --print(Kipje)
+end
+end
+end
+function GetRDamage()
+        if myHero:GetSpellData(_R).level == 1 then
+                return 300
+        elseif myHero:GetSpellData(_R).level == 2 then
+                return 400
+        elseif myHero:GetSpellData(_R).level == 3 then
+                return 500
+        end
 end
