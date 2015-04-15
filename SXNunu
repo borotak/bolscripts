@@ -1,5 +1,5 @@
 if myHero.charName ~= "Nunu"  or not VIP_USER then return end
-local version = 0.1
+local version = 0.2
 local AUTOUPDATE = true
 local SCRIPT_NAME = "SXNunu"
 require 'VPrediction'
@@ -35,8 +35,8 @@ local target = nil
 --Credit Trees
 
 function CheckUpdate()
-        local scriptName = "SXVolibear"
-        local version = 1.0
+        local scriptName = "SXNunu"
+        local version = 1.1
         local ToUpdate = {}
         ToUpdate.Version = version
         ToUpdate.Host = "raw.githubusercontent.com"
@@ -164,7 +164,7 @@ function initComponents()
     -- VPrediction Start
  VP = VPrediction()
    -- SOW Declare
-   Orbwalker = SOW(VP)
+   --Orbwalker = SOW(VP)
   -- Target Selector
    ts = TargetSelector(TARGET_LESS_CAST_PRIORITY, 900)
   
@@ -177,9 +177,10 @@ function initComponents()
       PrintChat("<font color = \"#33CCCC\">SAC Status:</font> <font color = \"#fff8e7\"> Loaded</font>")
      isSAC = true
  else
-     PrintChat("<font color = \"#33CCCC\">No Sac or MMA found:</font> <font color = \"#fff8e7\"> So u use SX aai </font>")
-       Menu:addSubMenu("["..myHero.charName.." - Orbwalker]", "SOWorb")
-       Orbwalker:LoadToMenu(Menu.SOWorb)
+ PrintChat("<font color = \"#33CCCC\">OrbWalker not found:</font> <font color = \"#fff8e7\"> Loading SX</font>")
+    Menu:addSubMenu("["..myHero.charName.."] - Orbwalking Settings", "Orbwalking")
+		SxOrb:LoadToMenu(Menu.Orbwalking)
+
     end
   
  Menu:addSubMenu("["..myHero.charName.." - Combo]", "NunuCombo")
@@ -190,9 +191,13 @@ function initComponents()
   Menu.NunuCombo.wSet:addParam("useW", "Use W", SCRIPT_PARAM_ONOFF, false)
  Menu.NunuCombo:addSubMenu("E Settings", "eSet")
   Menu.NunuCombo.eSet:addParam("useE", "Use E in combo", SCRIPT_PARAM_ONOFF, true)
+  Menu.NunuCombo.eSet:addParam("Passive", "Only E when passive! and if can kill target", SCRIPT_PARAM_ONOFF, true)
  Menu.NunuCombo:addSubMenu("R Settings", "rSet")
   Menu.NunuCombo.rSet:addParam("useR", "Use Smart Ultimate", SCRIPT_PARAM_ONOFF, true)
   Menu.NunuCombo.rSet:addParam("RMode", "Use Ultimate enemy count:", SCRIPT_PARAM_SLICE, 1, 1, 5, 0)
+  Menu.NunuCombo:addParam("ADC", "Support mode! Pref focus ADC", SCRIPT_PARAM_ONOFF, false)
+  
+  
  
  Menu:addSubMenu("["..myHero.charName.." - Harass]", "Harass")
   Menu.Harass:addParam("harass", "Harass", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("G"))
@@ -263,6 +268,10 @@ function OnTick()
 	CDHandler()
 	KillSteal()
   SxOrb:ForceTarget(Target)
+  findadc()
+  
+  print(AreaEnemyCount())
+   
   
    if click == 2 then
        DoubleClick()
@@ -399,16 +408,18 @@ function AllInCombo(target, typeCombo)
 	if target ~= nil and typeCombo == 0 then
 		ItemUsage(target)
      if target ~= nil and target.type == myHero.type and target.team ~= myHero.team then
-		if skills.SkillR.ready and Menu.NunuCombo.rSet.useR and ValidTarget(target, skills.SkillR.range) then
+		if skills.SkillR.ready and Menu.NunuCombo.rSet.useR and ValidTarget(target, skills.SkillR.range) and AreaEnemyCount() >= Menu.NunuCombo.rSet.RMode  then
 			CastSpell(_R) 
 		end
 
-	
-		if Menu.NunuCombo.wSet.useW and not ulti and ValidTarget(target, 200) and skills.SkillW.ready then
+	 if ADC then
+     prefadc()
+  end
+		if Menu.NunuCombo.wSet.useW and not ulti and ValidTarget(target, 200) and skills.SkillW.ready and not ADC then
 		    CastSpell(_W)
 		end
 
-		if Menu.NunuCombo.eSet.useE and not ulti and ValidTarget(target, skills.SkillE.range) and skills.SkillE.ready then
+		if Menu.NunuCombo.eSet.useE and not ulti and ValidTarget(target, skills.SkillE.range) and skills.SkillE.ready and not ADC then
 		    CastSpell(_E, target)
 		end
 	end
@@ -825,6 +836,34 @@ function OnSendPacket(p)
   --print("done")
 end
 end
+
+
+
+ADC = nil
+function findadc()
+  if target ~= nil and target.team ~= myHero.team then 
+    if ValidTarget(target) then
+      if target.charName == "Ashe" or target.charName == "Corki" or target.charName == "Kalista" or target.charName == "Vayne" or target.charName == "Caitlyn" or target.charName == "Draven" or target.charName == "Lucian" or target.charName == "Ezreal" or target.charName == "MissFortune" or target.charName == "Tristana" or target.charName == "Graves" or target.charName == "Quinn" or target.charName == "Jinx" or target.charName == "Varus" or target.charName == "Twitch" or target.charName == "Sivir" or target.charName == "Twitch" then
+        ADC = target
+      else
+        ADC = nil
+  end
+end
+end
+end
+
+function prefadc()
+  if Menu.NunuCombo.ADC then
+  if ADC ~= nil and ValitTarget(ADC, skills.SkillE.range) and skills.SkillE.ready and not ulti then
+    CastSpell(_E, ADC)
+  end
+  if ADC ~= nil and ValitTarget(ADC, skills.SkillW.range) and skills.SkillE.ready and not ulti then
+   CastSpell(_W, myHero)
+  end
+  end
+end
+
+
 --[[
 function OnSendPacket(p)
   print(string.format('%02X', p.header))
