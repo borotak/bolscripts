@@ -1,5 +1,5 @@
 if myHero.charName ~= "Nunu"  or not VIP_USER then return end
-local version = 0.2
+local version = 0.3
 local AUTOUPDATE = true
 local SCRIPT_NAME = "SXNunu"
 require 'VPrediction'
@@ -270,7 +270,7 @@ function OnTick()
   SxOrb:ForceTarget(Target)
   findadc()
   
-  print(AreaEnemyCount())
+ --rint(AreaEnemyCount())
    
   
    if click == 2 then
@@ -408,7 +408,7 @@ function AllInCombo(target, typeCombo)
 	if target ~= nil and typeCombo == 0 then
 		ItemUsage(target)
      if target ~= nil and target.type == myHero.type and target.team ~= myHero.team then
-		if skills.SkillR.ready and Menu.NunuCombo.rSet.useR and ValidTarget(target, skills.SkillR.range) and AreaEnemyCount() >= Menu.NunuCombo.rSet.RMode  then
+		if skills.SkillR.ready and Menu.NunuCombo.rSet.useR and ValidTarget(target, 300) and AreaEnemyCount() >= Menu.NunuCombo.rSet.RMode  then
 			CastSpell(_R) 
 		end
 
@@ -419,7 +419,7 @@ function AllInCombo(target, typeCombo)
 		    CastSpell(_W)
 		end
 
-		if Menu.NunuCombo.eSet.useE and not ulti and ValidTarget(target, skills.SkillE.range) and skills.SkillE.ready and not ADC then
+		if Menu.NunuCombo.eSet.useE and not ulti and ValidTarget(target, 400) and skills.SkillE.ready and not ADC then
 		    CastSpell(_E, target)
 		end
 	end
@@ -842,7 +842,7 @@ end
 ADC = nil
 function findadc()
   if target ~= nil and target.team ~= myHero.team then 
-    if ValidTarget(target) then
+    if ValidTarget(target, 900) and target.type == myHero.type then
       if target.charName == "Ashe" or target.charName == "Corki" or target.charName == "Kalista" or target.charName == "Vayne" or target.charName == "Caitlyn" or target.charName == "Draven" or target.charName == "Lucian" or target.charName == "Ezreal" or target.charName == "MissFortune" or target.charName == "Tristana" or target.charName == "Graves" or target.charName == "Quinn" or target.charName == "Jinx" or target.charName == "Varus" or target.charName == "Twitch" or target.charName == "Sivir" or target.charName == "Twitch" then
         ADC = target
       else
@@ -858,7 +858,7 @@ function prefadc()
     CastSpell(_E, ADC)
   end
   if ADC ~= nil and ValitTarget(ADC, skills.SkillW.range) and skills.SkillE.ready and not ulti then
-   CastSpell(_W, myHero)
+   CastSpell(_W)
   end
   end
 end
