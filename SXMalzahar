@@ -465,7 +465,7 @@ end
 
 
 function DevineQ()
-  print("johhny")
+ -- print("johhny")
   if target ~= nil and target.type == myHero.type then
   if Menu.ProdSettings.SelectProdiction == 1 then
 			local target = DPTarget(target)
