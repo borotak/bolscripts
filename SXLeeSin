@@ -1,5 +1,5 @@
 if myHero.charName ~= "LeeSin"  or not VIP_USER then return end
-local version = 0.3
+local version = 0.4
 local AUTOUPDATE = true
 local SCRIPT_NAME = "SXLeeSin by SyraX"
 require 'VPrediction'
@@ -8,20 +8,21 @@ require 'Collision'
 --require 'Prodiction'
 require "SxOrbwalk"
 require 'DivinePred'
+require 'HPrediction'
 -- Constants --
 local ignite, igniteReady = nil, nil
 local ts = nil
 local VP = nil
 local qOff, wOff, eOff, rOff = 0,0,0,0
 local abilitySequence = {1, 2, 3, 1, 1, 4, 1, 2, 1, 2, 4, 2, 2, 3, 3, 4, 3, 3}
-
+local turrets = GetTurrets()
 local Ranges = { AA = 125 }
 local LaatsteKeerQ, bonusDmg = 0, 0
 local LaatsteKeer, LaatsteKeer1, Laatstekeer2 = 0,0,0
 local SightG, lastWard, targetObj, friendlyObj = nil, nil, nil, nil
 function CheckUpdate()
         local scriptName = "SXLeeSin"
-        local version = 1.0
+        local version = 1.1
         local ToUpdate = {}
         ToUpdate.Version = version
         ToUpdate.Host = "raw.githubusercontent.com"
@@ -165,6 +166,16 @@ function OnLoad()
 	if _G.ScriptLoaded then	return end
 	_G.ScriptLoaded = true
 	initComponents()
+  
+  
+   Spell_Q.collisionM['LeeSin'] = true
+  Spell_Q.collisionH['LeeSin'] = true -- or false (sometimes, it's better to not consider it)
+  Spell_Q.delay['LeeSin'] = .5
+  Spell_Q.range['LeeSin'] = 1100
+  Spell_Q.speed['LeeSin'] = 1800
+ -- Spell_Q.type['LeeSin'] = "DelayLine" -- (it has tail like comet)
+  Spell_Q.width['LeeSin'] = 60
+  
 end
 function initComponents()
   --Prod = ProdictManager.GetInstance()
@@ -172,7 +183,8 @@ function initComponents()
   qPos = nil
     -- VPrediction Start
  VP = VPrediction()
- DP = DivinePred()
+DP = DivinePred()
+HPred = HPrediction()
    -- SOW Declare
    --Orbwalker = SOW(VP)
   -- Target Selector
@@ -207,6 +219,8 @@ function initComponents()
   Menu.LeeSinCombo.eSet:addParam("useE", "Use E in combo", SCRIPT_PARAM_ONOFF, true)
  Menu.LeeSinCombo:addSubMenu("R Settings", "rSet")
   Menu.LeeSinCombo.rSet:addParam("useR", "Use Smart Ultimate", SCRIPT_PARAM_ONOFF, true)
+  Menu.LeeSinCombo:addParam("AA", "Force AA", SCRIPT_PARAM_ONOFF, true)
+  
  
  Menu:addSubMenu("["..myHero.charName.." - Harass]", "Harass")
   Menu.Harass:addParam("harass", "Harass", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("G"))
@@ -228,7 +242,7 @@ function initComponents()
     
        Menu:addSubMenu("["..myHero.charName.." - Prodiction Settings]", "ProdSettings") -- Menu.ProdSettings.SelectProdiction
  -- Menu.selectProdSettings == 1 or 2
-	Menu.ProdSettings:addParam("SelectProdiction", "Select Prodiction", SCRIPT_PARAM_LIST, 1, {"Prodiction do not use this one", "VPrediction"," Divine Pred"})
+	Menu.ProdSettings:addParam("SelectProdiction", "Select Prodiction", SCRIPT_PARAM_LIST, 2, {"Prodiction do not use this one", "VPrediction"," Divine Pred", "HPrediction"})
 --  Menu.ProdSettings:addParam("OD", "OnDash", SCRIPT_PARAM_ONOFF, false)
 --  Menu.ProdSettings:addParam("AD", "AfterDash", SCRIPT_PARAM_ONOFF, false)
 -- Menu.ProdSettings:addParam("AI", "AfterImmobile", SCRIPT_PARAM_ONOFF, false)
@@ -237,9 +251,10 @@ function initComponents()
     Menu.Ads:addParam("autoLevel", "Auto-Level Spells", SCRIPT_PARAM_ONOFF, false)
     Menu.Ads:addParam("wardJump", "Ward Jump", SCRIPT_PARAM_ONKEYDOWN, false, 67)
     Menu.Ads:addParam("ESC", "Escape", SCRIPT_PARAM_ONKEYDOWN, false, 83)
-    Menu.Ads:addParam("predInSec", "Use prediction for InSec", SCRIPT_PARAM_ONOFF, false)
+   -- Menu.Ads:addParam("predInSec", "Use prediction for InSec", SCRIPT_PARAM_ONOFF, false)
     Menu.Ads:addParam("insecMake", "Insec", SCRIPT_PARAM_ONKEYDOWN, false, 84)
-    Menu.Ads:addParam("Toren", "Insec undertower", SCRIPT_PARAM_ONOFF, false)     
+    Menu.Ads:addParam("Toren", "Insec undertower", SCRIPT_PARAM_ONOFF, false) 
+  --  Menu.Ads:addParam("Choose", "Insec Direction", SCRIPT_PARAM_LIST, 1, {"Normal", "Tower", "Ally"})
  --Menu.Ads.Toren
    Menu.Ads:addSubMenu("Killsteal", "KS")
    Menu.Ads.KS:addParam("ignite", "Use Ignite", SCRIPT_PARAM_ONOFF, false)
@@ -397,13 +412,74 @@ ADVW = false
 ADVWtimer = math.huge
 click = 0
  time = math.huge
+ indebuurt = false
+ Razer = false
+Rtimer = math.huge
+   SightGDone = false
+     SightGTimer = math.huge
+     LastWardTimer = math.huge
+     Nick = false
+   InsecQ = false
+      IQCheck= math.huge
+       insecW = false
+      wTimer = math.huge
+  
 function OnTick()
 	target = GetCustomTarget()
-	targetMinions:update()
 	allyMinions:update()
 	jungleMinions:update()
 	CDHandler()
 	KillSteal()
+  
+  --[[if insecW then
+    if wTimer + 1 <= GetGameTimer() then
+      insecW = false
+      wTimer = math.huge
+    end
+  end
+  --]]
+  
+  --print(insecW)
+ -- print(InsecQ)
+   ally = getRandomAlly(2500)
+   if papi then 
+     if gino + 5 <= GetGameTimer() then
+       papi = false 
+       gino =math.huge
+     end
+     end
+   --print(Nick)
+   --print(lastWard1)
+   --print(SightG)
+  if InsecQ then
+    if IQCheck + 0.5 <= GetGameTimer() then
+      InsecQ = false
+      IQCheck= math.huge
+    end
+    end
+   --checkForInsec()
+   
+ -- print(check)
+  -- print(target)
+   --print(Q)
+   --print(Razer)
+   
+   if Razer then
+     insec()
+     end
+  -- print(ally)
+  
+  --print(SearchALly())
+
+  --print(turrets)
+ -- GetTower()
+  --GetGoodTower()
+  --Tower()
+--  print(SearchTower())
+  --print(Tower)
+  --toren()
+ 
+
  -- print(DiveOrNot())
  --print(lastWard2)
  --print(ADVW)
@@ -412,8 +488,10 @@ function OnTick()
  --print(DiveOrNot())
 
 if click == 2 then
-       DoubleClick()
+      
        if click == 2 then
+         Razer = true
+         Rtimer = GetGameTimer()
          click = 0
         end
    end
@@ -431,28 +509,52 @@ if click == 2 then
    if  konijn2 + 2 <= GetGameTimer() then
      lastWard2 = nil
    end
-   end
+ end
+ 
+ 
+ if lastWard1 then 
+   if konijn1 + 3 <= GetGameTimer() then
+     lastWard1 = nil 
+     Nick = false
+     LastWardTimer = math.huge
+     
+     
+    end
+  end
+
+     
+     if SightGDone then 
+       if SightGTimer + 2 <= GetGameTimer() then
+            SightGDone = false
+            SightGTimer = math.huge
+          end
+          end
+         
 
 
 
 
-  if lastWard1 then
-  if skills.SkillW.ready and myHero:GetSpellData(_W).name == "BlindMonkWOne" and lastWard1.valid then
-  if Menu.Ads.insecMake then
+  if lastWard1 and lastWard1.valid and GetDistance(lastWard1, myHero) <= 600 then
+   --  print("1")
+  if skills.SkillW.ready and myHero:GetSpellData(_W).name == "BlindMonkWOne"  then
+    --print("2")
+  if Menu.Ads.insecMake or Razer then
     	if LaatsteKeer1 > (GetTickCount() - 1000) then
 			if (GetTickCount() - LaatsteKeer1) >= 10 then
-      
+     --  print("3")
 	
 				CastSpell(_W, lastWard1)
+        LastWardTimer = math.huge
         check = true
         checktimer = GetGameTimer()
-       -- print("448")
-  end
+         wardgebruikt = true
+      wardtimer = GetGameTimer()
+      end
   end
 			end
-  	end
-  end
   
+end
+end
   if lastWard2 then
   if skills.SkillW.ready and myHero:GetSpellData(_W).name == "BlindMonkWOne" and lastWard2.valid  and Menu.LeeSinCombo.combo then
   if Menu.Ads.KS.ADV then
@@ -497,7 +599,7 @@ end
   end
 end
   if wardgebruikt then
-    if wardtimer + 4 <= GetGameTimer() then
+    if wardtimer + 3 <= GetGameTimer() then
       wardgebruikt = false
       wardtimer = math.huge
     end
@@ -519,7 +621,13 @@ end
     end
   end
   
-      
+      if Razer then
+        
+        if Rtimer + 3 <= GetGameTimer() then
+          Razer = false
+         Rtimer = math.huge
+       end
+       end
   if Q then
     if Qtime + 1 <= GetGameTimer() then
       Q = false
@@ -714,7 +822,7 @@ function wardJump()
 			if (GetTickCount() - LaatsteKeer) >= 10 then
       
 				CastSpell(_W, lastWard)
-        print("702")
+       -- print("702")
 			end
      -- print(" hij is in wardJump")
 		elseif SightG ~= nil then
@@ -738,9 +846,9 @@ function wardJump()
       end
       
 		end
+roken = false
 
-
-
+ 
 function OnCreateObj(object)
 	if myHero.dead then return end
   
@@ -748,20 +856,25 @@ function OnCreateObj(object)
 	
 	if Menu.Ads.wardJump then
 		if object ~= nil and object.valid and (object.name == "VisionWard" or object.name == "SightWard") then
-			lastWard = object
+			lastWard = object 
+       
 			LaatsteKeer = GetTickCount()
       konijn = GetGameTimer()
+    --  Nick = true
 		end
 	end
-  if Menu.Ads.insecMake then
+  if Menu.Ads.insecMake or Razer then
     	if object ~= nil and object.valid and (object.name == "VisionWard" or object.name == "SightWard") then
 			lastWard1 = object
 			LaatsteKeer1 = GetTickCount()
       konijn1 = GetGameTimer()
+      Nick = true
+     -- roken = true
+     -- print("wardplaced")
       
 		end
 	end
-  if Menu.Ads.KS.ADV and not Menu.Ads.insecmake and not Menu.Ads.wardJump then
+  if Menu.Ads.KS.ADV and not Menu.Ads.insecake and not Menu.Ads.wardJump then
    -- print("papi")
     	if object ~= nil and object.valid and (object.name == "VisionWard" or object.name == "SightWard") then
         if GetDistance(object, myHero) <= 600 then
@@ -877,7 +990,7 @@ function AllInCombo(target, typeCombo)
 	if target ~= nil and typeCombo == 0 then
 		ItemUsage(target)
     if target ~= nil and target.type == myHero.type and not target.dead then
-    if E or W then
+    if E or W and Menu.LeeSinCombo.AA then
       AA()
     end
     if not Q and Menu.LeeSinCombo.qSet.useQ  then
@@ -893,7 +1006,11 @@ function AllInCombo(target, typeCombo)
         if ValidTarget(target, skills.SkillQ. range) and skills.SkillQ.ready then
           ProdQ:GetPredictionCallBack(target, CastQ)
         end
-         end
+      elseif Menu.ProdSettings.SelectProdiction == 4 then
+        if ValidTarget(target, skills.SkillQ.range) and skills.SkillQ.ready then
+          CastQ()
+        end
+        end
     end
 
 
@@ -981,10 +1098,12 @@ function KillSteal()
 
   
   
-  if Menu.Ads.insecMake and not Menu.Ads.Toren then
+  if Menu.Ads.insecMake and not Menu.Ads.Toren and skills.SkillW.ready and skills.SkillQ.ready and skills.SkillW.ready then
  insec()
-elseif Menu.Ads.insecMake and Menu.Ads.Toren and DiveOrNot() then
+-- SearchALly()
+elseif Menu.Ads.insecMake and Menu.Ads.Toren and DiveOrNot() and skills.SkillW.ready and skills.SkillQ.ready and SightG ~= nil and skills.SkillW.ready then
   insec()
+--  SearchALly()
 end
    
   
@@ -1153,6 +1272,14 @@ function OnDraw()
         if Menu.drawings.drawE then DrawCircle(myHero.x, myHero.y, myHero.z, skills.SkillE.range, ARGB(25 , 255, 51, 153)) end
         if Menu.drawings.drawR then DrawCircle(myHero.x, myHero.y, myHero.z, skills.SkillR.range, ARGB(25 , 247, 190, 129)) end
     end
+    InsectDirection = Vector(myHero.pos)
+    --kippp = InsectDirection + (Vector(target) - InsectDirection):normalized() * 350
+    kippp = Vector(target)+ (Vector(target) - InsectDirection):normalized() * 300
+    if Menu.Ads.insecMake and kippp and not ally then
+      -- kippp = InsectDirection + (Vector(target) - InsectDirection):normalized() * 350
+      DrawCircle(kippp.x, kippp.y, kippp.z, 100, 0x99990f)
+      end
+    --kippp = InsectDirection + (Vector(target) - InsectDirection):normalized() * 350
 if _G.ShowTextDraw then
     for i = 1, heroManager.iCount do
 	    local enemy = heroManager:GetHero(i)
@@ -1177,8 +1304,8 @@ end
 
 local InsectDirection = Vector(myHero.pos)
    if Menu.Ads.insecMake and target ~= nil then
-        WardPos = InsectDirection + (Vector(target) - InsectDirection):normalized() * 400
-      DrawCircle(WardPos.x, WardPos.y, WardPos.z, 100, 0xffffff)
+       -- WardPos = InsectDirection + (Vector(target) - InsectDirection):normalized() * 400
+     -- DrawCircle(WardPos.x, WardPos.y, WardPos.z, 100, 0xffffff)
     end
     
     if target ~= nil then
@@ -1187,16 +1314,26 @@ local InsectDirection = Vector(myHero.pos)
       local t = 600 / GetDistance(target)
       local ADV = Vector(myHero) + t * (Vector(target) - Vector(myHero))
       
-      DrawCircle(ADV.x, ADV.y, ADV.z, 100, 0xffffff)
+     -- DrawCircle(ADV.x, ADV.y, ADV.z, 100, 0xffffff)
     end
   end
-  if target ~= nil and ValidTarget(target, skills.SkillR.range) then
-    local KnockDistance = 800
-    local KSult = Vector(target) +  (Vector(target)-Vector(myHero)):normalized()*KnockDistance
-    DrawCircle(KSult.x, KSult.y, KSult.z, 100, 0xffffff)
+
+    if target ~= nil and Menu.Ads.insecMake and ally then
+     
+ 
+    WardPos2 = Vector(target) + (Vector(target) - ally):normalized() * 300
+   
+    
+     DrawCircle(WardPos2.x, WardPos2.y, WardPos2.z, 100, 0x99990f)
+     end
+   if WardPos1 and not ally then
+     DrawCircle(WardPos1.x, WardPos1.y, WardPos1.z, 100, 0x99990f)
+    -- print ("hij doet het")
+     --print("gekte")
+     end
 	end
 end
-end
+
 
 
 -- prediction
@@ -1204,14 +1341,6 @@ function GetQPos(unit, pos)
         qPos = pos
 end
 
-function CastQ(unit,pos)
-    if GetDistance(pos) < skills.SkillQ.range and skills.SkillQ.ready then
-        local coll = Collision(1150, 1175, 0.25, 80)
-            if not coll:GetMinionCollision(pos, myHero) then
-                CastSpell(_Q, pos.x, pos.z)
-            end
-    end
-end
 
 function OnWndMsg(Msg, Key)	
 	
@@ -1329,8 +1458,8 @@ function DevineQ()
   if target ~= nil and target.type == myHero.type then
   if Menu.ProdSettings.SelectProdiction == 3 then
 			local target = DPTarget(target)
-			local LuxQ = LineSS(skills.SkillQ.speed, skills.SkillQ.range, skills.SkillQ.width, skills.SkillQ.delay, 0)
-			local State, Position, perc = DP:predict(target, LuxQ)
+			local LeeSinQ = LineSS(skills.SkillQ.speed, skills.SkillQ.range, skills.SkillQ.width, skills.SkillQ.delay, 0)
+			local State, Position, perc = DP:predict(target, MalzaharQ)
 			if State == SkillShot.STATUS.SUCCESS_HIT then 
 				
       Packet("S_CAST", {spellId = _Q, fromX = Position.x, fromY = Position.z, toX = Position.x, toY = Position.z}):send()
@@ -1348,11 +1477,29 @@ function AA()
 end
 
 
-
- 
+insecW = false
+ function OnRemoveBuff(unit, buff)
+    if buff and buff.name:find("blindmonkqtwodash")  then
+      InsecQ = false
+    end
+    if buff and buff.name:find("blindmonkwoneshield") then
+      insecW = false
+     -- wTimer = GetGameTimer()
+    end
+    --if buff then print(buff.name) end
+    
+    
+    end
 function OnApplyBuff(source, unit, buff)
-   
-   
+   if buff and buff.name:find("blindmonkwonedash")  then
+      insecW = true
+      --wTimer = GetGameTimer()
+    end
+    
+      if buff and buff.name:find("blindmonkqtwodash")  then
+      InsecQ = true
+    end
+   -- if buff then print(buff.name) end
   if buff and buff.name:find("BlindMonkQOne") then
     Q = true
     Qtime = GetGameTimer()
@@ -1390,6 +1537,11 @@ function KS()
             elseif Menu.ProdSettings.SelectProdiction == 1 then 
               if target.health <= qDmg and skills.SkillQ.ready and Menu.Ads.KS.useQ and not Q and ValidTarget(target) then
             ProdQ:GetPredictionCallBack(target, CastQ)
+          elseif Menu.ProdSettings.SelectProdiction == 4 then 
+            if target.health <= qDmg and skills.SkillQ.ready and Menu.Ads.KS.useQ and not Q and ValidTarget(target) then
+              CastQ()
+            end
+            
             end
          end
             if ValidTarget(target, skills.SkillR.range) then
@@ -1637,30 +1789,135 @@ end
 
   end 
 
+--[[
+function checkForInsec()
+ -- if Razer then
+  if not Razer then
+    check = false
+        checktimer = math.huge
+         wardgebruikt = false
+      wardtimer = math.huge
+       Razer = false
+         Rtimer = math.huge
+       end
+       end
+if Menu.Ads.insecMake then
+ if not Menu.Ads.insecMake then
+check = false
+        checktimer = math.huge
+         wardgebruikt = false
+      wardtimer = math.huge
+       Razer = false
+         Rtimer = math.huge
+       end
+       end
+--]]
+naam = nil
+insecTimer = math.huge
+function einde()
+   WardPoss = nil
+  WardPosss = nil
+  Penis = nil
+  Vagina = nil
+  end
+gino = math.huge
+papi = false
 function insec()
- if skills.SkillQ.ready and skills.SkillW.ready and skills.SkillR.ready and ValidTarget(target, skills.SkillQ.range) then   
-		local CastPosition, HitChance, Position = VP:GetLineCastPosition(target, skills.SkillQ.delay, skills.SkillQ.width, skills.SkillQ.range, skills.SkillQ.speed, myHero, true)
+ -- print(WardPosss)
+  --if not papi then
+ -- print(gino)
+  --print(SightGDone)
+--print("kip")
+if ValidTarget(target) and target and target.type == myHero.type and target.team ~= myHero.team then
+    naam = target.charName
+    Mongool = target
+    insecTimer = GetGameTimer()
+  
+  end
+
+  if target ~= nil and target.valid then
+if Menu.ProdSettings.SelectProdiction == 2 then
+    if skills.SkillQ.ready and skills.SkillW.ready and skills.SkillR.ready and ValidTarget(target, 1100) then   
+    local CastPosition, HitChance = VP:GetLineCastPosition(target, skills.SkillQ.delay, skills.SkillQ.width, skills.SkillQ.range, skills.SkillQ.speed, myHero, true)
       if HitChance >= 2 then  
-        Packet("S_CAST", {spellId = _Q, fromX = CastPosition.x, fromY = CastPosition.z, toX = CastPosition.x, toY = CastPosition.z}):send()
+     -- Packet("S_CAST", {spellId = _Q, fromX = CastPosition.x, fromY = CastPosition.z, toX = CastPosition.x, toY = CastPosition.z}):send()
+     CastSpell(_Q, CastPosition.x, CastPosition.z)
       end
     end
-    if SightG ~= nil and target ~= nil and ValidTarget(target, 225) then
-    local InsectDirection = Vector(myHero.pos)
-    WardPos = InsectDirection + (Vector(target) - InsectDirection):normalized() * 400--Position behind the target, to place the ward
-      if not wardgebruikt then
-      CastSpell(SightG, WardPos.x, WardPos.z)--place ward behind target	
-      wardgebruikt = true
-      wardtimer = GetGameTimer()
-      end
-      if check and ValidTarget(target, skills.SkillR.range) then
-        if skills.SkillR.ready then
-          CastSpell(_R, target)
-        end
-      end 
-    end--, GetLatency(), {target})  
+  elseif Menu.ProdSettings.SelectProdiction == 4  then
+    if skills.SkillQ.ready and skills.SkillW.ready and skills.SkillR.ready and ValidTarget(target, 1100) then   
+      CastQ()
+    end
+    end
+    
+
+    if target ~= nil and ValidTarget(target) then
+      if ally then
+      WardPoss = Vector(target) + (Vector(target) - ally):normalized() * 350
+     -- print("1")
+    end
+    end
+    if target ~= nil and not ally and ValidTarget(target) then
+      --print("1")
+      local InsectDirection = Vector(myHero.pos)
+      
+      WardPosss = Vector(target) + (Vector(target) - InsectDirection):normalized() * 350
+      
+    end
 end
+ -- print("1")
+      --if not wardgebruikt and not SightGDone then
+      if WardPoss and SightG ~= nil and GetDistance(myHero, WardPoss) <= skills.SkillW.range and ally and skills.SkillW.ready and InsecQ then
+        -- print("2")
+         if SightG == 12 then 
+          Penis = SightG
+          CastSpell(Penis, WardPoss.x, WardPoss.z)
+          SightGDone = true
+          SightGTimer = GetGameTimer()
+          end
+        if SightG ~= nil and SightG ~= 12 then
+          CastSpell(SightG, WardPoss.x, WardPoss.z)
+          SightGDone = true
+          SightGTimer = GetGameTimer()
+    end
+   end
+    -- print("UO") --GetDistance(myHero, WardPosss) <= skills.SkillW.range
+     if WardPosss and SightG ~= nil and not ally  and GetDistance(myHero, WardPosss) <= skills.SkillW.range and skills.SkillW.ready and  InsecQ then
+        --print("CANCER")
+        if SightG == 12 then
+          Vagina = SightG 
+          CastSpell(Vagina, WardPosss.x, WardPosss.z)
+          SightGDone = true
+          SightGTimer = GetGameTimer()
+          end
+        if SightG ~= nil and SightG ~= 12 and GetDistance(myHero, WardPosss) <= skills.SkillW.range then
+          --print("q")
+          CastSpell(SightG, WardPosss.x, WardPosss.z)
+          SightGDone = true
+          SightGTimer = GetGameTimer()
+     end
+     
+     end
+   
+   
+ 
+     if ValidTarget(target, skills.SkillR.range) and skills.SkillR.ready and insecW then
+      -- print(" hij probeert")
+      CastSpell(_R, target)
+    --   einde()
+ --gino = GetGameTimer()
+ --papi = true
+
+  end
+  end
+
+--end
+
 	--	end
 	--end--, (GetLatency() * 1.5), {WardPos, target})
+Toren = nil
+Ally = nil
+ 
 
 function AreaEnemyCount()
 	local count = 0
@@ -1672,32 +1929,9 @@ function AreaEnemyCount()
 	return count
 end
 
-
-
-function OnTowerFocus(tower, unit)
-  unit = GetTarget()
-  if unit ~= nil then
-       if tower.team == myHero.team then
-         if unit.team ~= myHero.team then
-           Kip = true
-       end
-     end
-  end
- 
-
- end
-
-
-    
-
-
 function DiveOrNot()
 	return ValidTarget(target) and not UnderTurret(target.pos, true)
 end
- function DoubleClick()
-  insec()
- end
- 
 
  function AdvancedR()
     if target ~= nil and ValidTarget(target, skills.SkillR.range) then
@@ -1720,5 +1954,82 @@ end
 end
 end
 
+
   function endlane()
+  end
+  --[[
+local Tower = nil
+
+function SearchTower()
+
+for i=0, objManager.iCount, 1 do
+
+  obj = objManager:GetObject(i)
+
+  if obj and obj.type == "obj_AI_Turret" and obj.team == myHero.team then
+
+      turretPos = Point(obj.x, obj.z)
+      if Tower == nil or GetDistance(turretPos) < Tower then
+          Tower = turretPos
+      end
+  end
+
+end
+    print(Tower) --this will spam a bit
+end--]]
+--[[
+function OnDeleteObj(obj, name)
+  if obj and obj.team == myHero.team then
+    --print(obj)
+  end
+  end
+function toren()
+  if turrets ~= nil then 
+  print(turrets.valid)
+ end
+end--]]
+--[[
+function SearchALly()
+  for i = 1, heroManager.iCount do
+        local obj = heroManager:GetHero(i)
+        if hero.team == myHero.team and hero.type == myHero.type and hero.charName ~= myHero.charName then
+          if GetDistanceSqr(myHero, hero) < 1500 * 1500 then
+          Ally = hero
+        else
+          Ally = nil
+        end
+      end
     end
+    
+        end
+        --]]
+    local allies = GetAllyHeroes()
+
+function getRandomAlly(range)
+    for i, ally in pairs(allies) do
+        if GetDistance(ally) < range then
+            return ally
+        end
+    end
+    return nil
+end
+
+
+function CastQ()
+  if target ~= nil then
+  QPos, QHitChance = HPred:GetPredict("Q", target, myHero)
+  
+  if QHitChance >= 2 and ValidTarget(target, skills.SkillQ.range) then
+  
+    if VIP_USER then
+      Packet("S_CAST", {spellId = _Q, toX = QPos.x, toY = QPos.z, fromX = QPos.x, fromY = QPos.z}):send()
+    else
+      CastSpell(_Q, QPos.x, QPos.z)
+    end
+    
+  end
+  
+end
+end
+
+
