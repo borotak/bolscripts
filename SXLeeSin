@@ -170,10 +170,10 @@ function OnLoad()
   
    Spell_Q.collisionM['LeeSin'] = true
   Spell_Q.collisionH['LeeSin'] = true -- or false (sometimes, it's better to not consider it)
-  Spell_Q.delay['LeeSin'] = .5
+  Spell_Q.delay['LeeSin'] = 0.5
   Spell_Q.range['LeeSin'] = 1100
   Spell_Q.speed['LeeSin'] = 1800
- -- Spell_Q.type['LeeSin'] = "DelayLine" -- (it has tail like comet)
+  Spell_Q.type['LeeSin'] = "DelayLine" -- (it has tail like comet)
   Spell_Q.width['LeeSin'] = 60
   
 end
@@ -2019,13 +2019,11 @@ function CastQ()
   if target ~= nil then
   QPos, QHitChance = HPred:GetPredict("Q", target, myHero)
   
-  if QHitChance >= 2 and ValidTarget(target, skills.SkillQ.range) then
+  if QHitChance >= 2 then
   
-    if VIP_USER then
+  
+      
       Packet("S_CAST", {spellId = _Q, toX = QPos.x, toY = QPos.z, fromX = QPos.x, fromY = QPos.z}):send()
-    else
-      CastSpell(_Q, QPos.x, QPos.z)
-    end
     
   end
   
