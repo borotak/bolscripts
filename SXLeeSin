@@ -174,7 +174,7 @@ function OnLoad()
   Spell_Q.range['LeeSin'] = 1100
   Spell_Q.speed['LeeSin'] = 1800
   Spell_Q.type['LeeSin'] = "DelayLine" -- (it has tail like comet)
-  Spell_Q.width['LeeSin'] = 60
+  Spell_Q.width['LeeSin'] = 120
   
 end
 function initComponents()
@@ -2017,7 +2017,7 @@ end
 
 function CastQ()
   if target ~= nil then
-  QPos, QHitChance = HPred:GetPredict("Q", target, myHero)
+  local QPos, QHitChance = HPred:GetPredict("Q", target, myHero)
   
   if QHitChance >= 2 then
   
