@@ -210,13 +210,17 @@ function OnLoad()
      
    Spell_W.collisionM['Morgana'] = false
   Spell_W.collisionH['Morgana'] = false -- or false (sometimes, it's better to not consider it)
-  Spell_W.delay['Morgana'] = .5
-  Spell_W.range['Morgana'] = 1075
+  Spell_W.delay['Morgana'] = .25
+  Spell_W.range['Morgana'] = 900
   Spell_W.speed['Morgana'] = 1200
-  Spell_W.type['Morgana'] = "DelayCircle" -- (it has tail like comet)
+  --Spell_W.type['Morgana'] = "DelayCircle" -- (it has tail like comet)
+  
+
+Spell_W.type['Morgana'] = "PromptCircle"
+Spell_W.radius['Morgana'] = 28
   Spell_W.width['Morgana'] = 140
   --Spell_W.type['Nidalee'] = "DelayCircle"
-Spell_W.radius['Morgana'] = 350
+--Spell_W.radius['Morgana'] = 350
   
   
 
