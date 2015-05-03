@@ -861,7 +861,7 @@ if _G.ShowTextDraw then
       end
       end--]]
 end
-if not myHero.dead and target ~= nil and	target.team ~= myHero.team and target.type ~= myHero.type then 
+if not myHero.dead and target ~= nil and	target.team ~= myHero.team and target.type == myHero.type then 
 		--	if Settings.drawing.text then 
 				DrawText3D("Focus This Bitch!",target.x-100, target.y-50, target.z, 20, 0xFFFF9900) --0xFF9900
 			end
