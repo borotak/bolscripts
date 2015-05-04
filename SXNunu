@@ -410,6 +410,7 @@ function AllInCombo(target, typeCombo)
 	if target ~= nil and typeCombo == 0 then
 		ItemUsage(target)
      if target ~= nil and target.type == myHero.type and target.team ~= myHero.team then
+       print("Papi")
         if skills.SkillR.ready and Menu.NunuCombo.rSet.useR and ValidTarget(target, 300) and AreaEnemyCount() >= Menu.NunuCombo.rSet.RMode  then
         CastSpell(_R) 
         end
@@ -420,12 +421,12 @@ function AllInCombo(target, typeCombo)
       end
      if Menu.NunuCombo.eSet.Passive then 
        if Passive then
-        if Menu.NunuCombo.eSet.useE and not ulti and ValidTarget(target, 400) and skills.SkillE.ready and not ADC then
+        if Menu.NunuCombo.eSet.useE and not ulti and ValidTarget(target, skills.SkillE.range) and skills.SkillE.ready and not ADC then
 		    CastSpell(_E, target)
       end
     end
   elseif not Menu.NunuCombo.eSet.Passive then
-       if Menu.NunuCombo.eSet.useE and not ulti and ValidTarget(target, 400) and skills.SkillE.ready and not ADC then
+       if Menu.NunuCombo.eSet.useE and not ulti and ValidTarget(target, skills.SkillE.range) and skills.SkillE.ready and not ADC then
 		    CastSpell(_E, target)
       end
       end
