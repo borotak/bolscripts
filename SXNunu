@@ -1,5 +1,5 @@
 if myHero.charName ~= "Nunu"  or not VIP_USER then return end
-local version = 0.3
+local version = 0.4
 local AUTOUPDATE = true
 local SCRIPT_NAME = "SXNunu"
 require 'VPrediction'
@@ -166,7 +166,7 @@ function initComponents()
    -- SOW Declare
    --Orbwalker = SOW(VP)
   -- Target Selector
-   ts = TargetSelector(TARGET_LESS_CAST_PRIORITY, 900)
+   ts = TargetSelector(TARGET_LESS_CAST_PRIORITY, 1400)
   
  Menu = scriptConfig("SXNunu", "NunuMA")
 
@@ -192,6 +192,7 @@ function initComponents()
  Menu.NunuCombo:addSubMenu("E Settings", "eSet")
   Menu.NunuCombo.eSet:addParam("useE", "Use E in combo", SCRIPT_PARAM_ONOFF, true)
   Menu.NunuCombo.eSet:addParam("Passive", "Only E when passive! and if can kill target", SCRIPT_PARAM_ONOFF, true)
+
  Menu.NunuCombo:addSubMenu("R Settings", "rSet")
   Menu.NunuCombo.rSet:addParam("useR", "Use Smart Ultimate", SCRIPT_PARAM_ONOFF, true)
   Menu.NunuCombo.rSet:addParam("RMode", "Use Ultimate enemy count:", SCRIPT_PARAM_SLICE, 1, 1, 5, 0)
@@ -269,6 +270,7 @@ function OnTick()
 	KillSteal()
   SxOrb:ForceTarget(Target)
   findadc()
+ -- print(Passive)
   
  --rint(AreaEnemyCount())
    
@@ -408,23 +410,33 @@ function AllInCombo(target, typeCombo)
 	if target ~= nil and typeCombo == 0 then
 		ItemUsage(target)
      if target ~= nil and target.type == myHero.type and target.team ~= myHero.team then
-		if skills.SkillR.ready and Menu.NunuCombo.rSet.useR and ValidTarget(target, 300) and AreaEnemyCount() >= Menu.NunuCombo.rSet.RMode  then
-			CastSpell(_R) 
-		end
+        if skills.SkillR.ready and Menu.NunuCombo.rSet.useR and ValidTarget(target, 300) and AreaEnemyCount() >= Menu.NunuCombo.rSet.RMode  then
+        CastSpell(_R) 
+        end
 
-	 if ADC then
-     prefadc()
-  end
-		if Menu.NunuCombo.wSet.useW and not ulti and ValidTarget(target, 200) and skills.SkillW.ready and not ADC then
+     
+      if Menu.NunuCombo.wSet.useW and not ulti and ValidTarget(target, 300) and skills.SkillW.ready and not ADC then
 		    CastSpell(_W)
-		end
-
-		if Menu.NunuCombo.eSet.useE and not ulti and ValidTarget(target, 400) and skills.SkillE.ready and not ADC then
+      end
+     if Menu.NunuCombo.eSet.Passive then 
+       if Passive then
+        if Menu.NunuCombo.eSet.useE and not ulti and ValidTarget(target, 400) and skills.SkillE.ready and not ADC then
 		    CastSpell(_E, target)
-		end
-	end
+      end
+    end
+  elseif not Menu.NunuCombo.eSet.Passive then
+       if Menu.NunuCombo.eSet.useE and not ulti and ValidTarget(target, 400) and skills.SkillE.ready and not ADC then
+		    CastSpell(_E, target)
+      end
+      end
+   if ADC then
+        prefadc()
+      end
 end
 end
+
+end
+
 -- All In Combo --
 function safeme()
   for i, targetMinion in pairs(targetMinions.objects) do
@@ -832,8 +844,9 @@ end
 
 function OnSendPacket(p)
   if ulti then
-  if p.header == 0x00D2 then p:Block() end
+  if p.header == 0x00114 or p.header == 0x0114 then p:Block() end
   --print("done")
+  -- patch 5.7 p.header == 0x00D2 
 end
 end
 
@@ -862,10 +875,31 @@ function prefadc()
   end
   end
 end
-
-
+Passive = false
+function OnApplyBuff(source, unit, buff)
+ if unit.team == myHero.team then
+ if buff and buff.name == "visionary" then
+   Passive = true
+ end
+ 
+end
+end
+function OnRemoveBuff(unit, buff)
+  if unit.team == myHero.team then
+    if buff and buff.name == "visionary" then
+      Passive = false
+    end
+  end
+  end
+--[[
+function OnUpdateBuff(unit, buff)
+if buff then print(buff.name) end
+end
+--]]
 --[[
 function OnSendPacket(p)
+  if p.header == 0x0114 or p.header == 0x0029 or p.header == 0x0054 then return end
+  
   print(string.format('%02X', p.header))
 end
---d2 of FA --]]
+--]]
