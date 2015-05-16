@@ -1,5 +1,5 @@
 if myHero.charName ~= "Nunu"  or not VIP_USER then return end
-local version = 0.4
+local version = 0.5
 local AUTOUPDATE = true
 local SCRIPT_NAME = "SXNunu"
 require 'VPrediction'
@@ -36,7 +36,7 @@ local target = nil
 
 function CheckUpdate()
         local scriptName = "SXNunu"
-        local version = 1.1
+        local version = 1.5
         local ToUpdate = {}
         ToUpdate.Version = version
         ToUpdate.Host = "raw.githubusercontent.com"
@@ -197,6 +197,8 @@ function initComponents()
   Menu.NunuCombo.rSet:addParam("useR", "Use Smart Ultimate", SCRIPT_PARAM_ONOFF, true)
   Menu.NunuCombo.rSet:addParam("RMode", "Use Ultimate enemy count:", SCRIPT_PARAM_SLICE, 1, 1, 5, 0)
   Menu.NunuCombo:addParam("ADC", "Support mode! Pref focus ADC", SCRIPT_PARAM_ONOFF, false)
+  Menu.NunuCombo:addParam("Cancel", "Choose Cancel ulti", SCRIPT_PARAM_LIST, 3, {"On Double Click target", "On Double click", "Don't wanna use this"})
+ 
   
   
  
@@ -410,7 +412,7 @@ function AllInCombo(target, typeCombo)
 	if target ~= nil and typeCombo == 0 then
 		ItemUsage(target)
      if target ~= nil and target.type == myHero.type and target.team ~= myHero.team then
-       print("Papi")
+    --   print("Papi")
         if skills.SkillR.ready and Menu.NunuCombo.rSet.useR and ValidTarget(target, 300) and AreaEnemyCount() >= Menu.NunuCombo.rSet.RMode  then
         CastSpell(_R) 
         end
@@ -796,11 +798,15 @@ end
 end
 end
 function DoubleClick()
-
+--  print("piep")
+if ulti and  Menu.NunuCombo.Cancel == 1 then
+  ulti = false
  end
- 
+ end
  function DoubleClick2()
-   
+   if ulti and  Menu.NunuCombo.Cancel == 2 then
+  ulti = false
+ end
     end
 
 function KS()
@@ -844,8 +850,11 @@ end
 end
 
 function OnSendPacket(p)
+ -- if not p.header == 94 or not p.header == 0x0115 then return end
+  --print(string.format('%02X', p.header))
   if ulti then
-  if p.header == 0x00114 or p.header == 0x0114 then p:Block() end
+   -- print(string.format('%02X', p.header))
+  if p.header == 0x00114 or p.header == 0x0114 or p.header == 0x0042 then p:Block() end
   --print("done")
   -- patch 5.7 p.header == 0x00D2 
 end
