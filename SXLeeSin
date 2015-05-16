@@ -1,5 +1,5 @@
 if myHero.charName ~= "LeeSin"  or not VIP_USER then return end
-local version = 0.4
+local version = 0.5
 local AUTOUPDATE = true
 local SCRIPT_NAME = "SXLeeSin by SyraX"
 require 'VPrediction'
@@ -22,7 +22,7 @@ local LaatsteKeer, LaatsteKeer1, Laatstekeer2 = 0,0,0
 local SightG, lastWard, targetObj, friendlyObj = nil, nil, nil, nil
 function CheckUpdate()
         local scriptName = "SXLeeSin"
-        local version = 1.1
+        local version = 1.5
         local ToUpdate = {}
         ToUpdate.Version = version
         ToUpdate.Host = "raw.githubusercontent.com"
