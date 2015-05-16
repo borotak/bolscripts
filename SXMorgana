@@ -1,5 +1,5 @@
 if myHero.charName ~= "Morgana"  or not VIP_USER then return end
-local version = 0.1
+local version = 0.2
 local AUTOUPDATE = true
 local SCRIPT_NAME = "SXMorgana"
 require 'VPrediction'
@@ -40,7 +40,7 @@ local target = nil
 
 function CheckUpdate()
         local scriptName = "SXMorgana"
-        local version = 1.0
+        local version = 1.2
         local ToUpdate = {}
         ToUpdate.Version = version
         ToUpdate.Host = "raw.githubusercontent.com"
@@ -200,14 +200,9 @@ function OnLoad()
 	initComponents()
    HookPackets()
    
-   Spell_Q.collisionM['Morgana'] = true
-  --Spell_Q.collisionH['Morgana'] = true -- or false (sometimes, it's better to not consider it)
-  Spell_Q.delay['Morgana'] = 0.5
-  Spell_Q.range['Morgana'] = 1175
-  Spell_Q.speed['Morgana'] = 1200
-  Spell_Q.type['Morgana'] = "DelayLine" -- (it has tail like comet)
-  Spell_Q.width['Morgana'] = 140
-     
+   HPred:AddSpell("Q", "Morgana", {type = "DelayLine", delay = 0.25, range = 1175, speed = 1200, width = 140})
+HPred:AddSpell("W", "Karma", {type = "PromptCircle", delay = 0.25, range = 1175, speed = math.huge, width = 140, radius = 28})
+     --[[
    Spell_W.collisionM['Morgana'] = false
   Spell_W.collisionH['Morgana'] = false -- or false (sometimes, it's better to not consider it)
   Spell_W.delay['Morgana'] = .25
@@ -222,7 +217,7 @@ Spell_W.radius['Morgana'] = 28
   --Spell_W.type['Nidalee'] = "DelayCircle"
 --Spell_W.radius['Morgana'] = 350
   
-  
+  --]]
 
 end
 function initComponents()
