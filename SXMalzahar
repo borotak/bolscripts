@@ -1,5 +1,5 @@
 if myHero.charName ~= "Malzahar"  or not VIP_USER then return end
-local version = 0.1
+local version = 0.2
 local AUTOUPDATE = true
 local SCRIPT_NAME = "SXMalzahar"
 require 'VPrediction'
@@ -39,7 +39,7 @@ local target = nil
 
 function CheckUpdate()
         local scriptName = "SXMalzahar"
-        local version = 1.0
+        local version = 1.2
         local ToUpdate = {}
         ToUpdate.Version = version
         ToUpdate.Host = "raw.githubusercontent.com"
@@ -830,7 +830,7 @@ end
 function OnSendPacket(packet)
   if ulti then
  --print("papi")
-  if packet.header == 0x00D2 then 
+  if packet.header == 0x00D2 or packet.header == 0x002D then 
     packet:Block() 
     --print("papi2")
     end
@@ -1012,4 +1012,3 @@ function KS()
   end
   
 end
-
