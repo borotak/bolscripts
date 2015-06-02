@@ -1,5 +1,5 @@
 if myHero.charName ~= "Nunu"  or not VIP_USER then return end
-local version = 0.5
+local version = 0.6
 local AUTOUPDATE = true
 local SCRIPT_NAME = "SXNunu"
 require 'VPrediction'
@@ -36,7 +36,7 @@ local target = nil
 
 function CheckUpdate()
         local scriptName = "SXNunu"
-        local version = 1.5
+        local version = 1.6
         local ToUpdate = {}
         ToUpdate.Version = version
         ToUpdate.Host = "raw.githubusercontent.com"
@@ -226,7 +226,7 @@ function initComponents()
     Menu.Ads:addParam("safe", " Eat minion if under 80% health", SCRIPT_PARAM_ONOFF, false)
   
    Menu.Ads:addSubMenu("Killsteal", "KS")
-   Menu.Ads.KS:addParam("Q", "KS Q", SCRIPT_PARAM_ONOFF, false)
+   Menu.Ads.KS:addParam("Q", "KS E", SCRIPT_PARAM_ONOFF, false)
   -- Menu.Ads.KS.Q
    Menu.Ads.KS:addParam("ignite", "Use Ignite", SCRIPT_PARAM_ONOFF, false)
   Menu.Ads.KS:addParam("igniteRange", "Minimum range to cast Ignite", SCRIPT_PARAM_SLICE, 470, 0, 600, 0)
@@ -423,7 +423,7 @@ function AllInCombo(target, typeCombo)
       end
      if Menu.NunuCombo.eSet.Passive then 
        if Passive then
-        if Menu.NunuCombo.eSet.useE and not ulti and ValidTarget(target, skills.SkillE.range) and skills.SkillE.ready and not ADC then
+        if Menu.NunuCombo.eSet.useE and not ulti and ValidTarget(target, skills.SkillE.range) and skills.SkillE.ready then
 		    CastSpell(_E, target)
       end
     end
@@ -850,11 +850,11 @@ end
 end
 
 function OnSendPacket(p)
- -- if not p.header == 94 or not p.header == 0x0115 then return end
+  if not p.header == 41 or not p.header == 0x0115 or not p.header == 0x00041 then return end
   --print(string.format('%02X', p.header))
   if ulti then
    -- print(string.format('%02X', p.header))
-  if p.header == 0x00114 or p.header == 0x0114 or p.header == 0x0042 then p:Block() end
+  if p.header == 0x00114 or p.header == 0x0114 or p.header == 0x00F2 then p:Block() end
   --print("done")
   -- patch 5.7 p.header == 0x00D2 
 end
