@@ -304,7 +304,10 @@ function OnTick()
   if MarkDamage ~= nil then
  -- print(MarkDamage)
 end
-
+    if target.health <= MarkDamage and Menu.ZedCombo.swap then
+    --    print("shiitt")
+        CastSpell(_R, myHero)
+        end
 if not Mark then
   BA = 0
 CA = 0 
@@ -682,7 +685,7 @@ end
       local CastPosition, HitChance, Position = VP:GetLineCastPosition(target, skills.SkillQ.delay, skills.SkillQ.width, skills.SkillQ.range, skills.SkillQ.speed, myHero, false)
            if HitChance >= 2 then
 				CastSpell(_Q, CastPosition.x, CastPosition.z)
-    print("676")
+    --print("676")
       end
     elseif Menu.ProdSettings.SelectProdiction == 1 then
     DevineQ()
@@ -761,7 +764,7 @@ function Harass()
         local CastPosition, HitChance, Position = VP:GetLineCastPosition(target, skills.SkillQ.delay, skills.SkillQ.width, skills.SkillQ.range, skills.SkillQ.speed, myHero, false)
            if HitChance >= 2 and GetDistance(CastPosition) < 900 then
 				CastSpell(_Q, CastPosition.x, CastPosition.z)
-       print("301")
+      -- print("301")
             end
     elseif Menu.Harass.useQ and ValidTarget(target, skills.SkillQ.range) and skills.SkillQ.ready and Menu.ProdSettings.SelectProdiction == 1 then
           DevineQ()
@@ -893,7 +896,7 @@ function Combo()
    end
    
 if myHero:GetSpellData(_R).level == 0 then
-     print("papi")
+    -- print("papi")
 		AllInCombo(target, 0)
     end
   if myHero:GetSpellData(_R).name ~= "ZedR2"  and not skills.SkillR.ready then
@@ -1329,7 +1332,7 @@ function OnProcessSpell(object, spell)
 			--if casttype == 4 or casttype == 5 or casttype == 6 then return end
 			if spelltype == "BAttack" then
         BA = BA + 1
-        print(BA)
+        --print(BA)
         end
       if spelltype == "CAttack" then
 				CA = CA + 1
@@ -1372,10 +1375,7 @@ function OnProcessSpell(object, spell)
     -- print(MarkDamage)
       --CAa = CA 
      -- print(Menu.ZedCombo.swap)
-      if target.health <= MarkDamage and Menu.ZedCombo.swap then
-    --    print("shiitt")
-        CastSpell(_R, myHero)
-        end
+  
 
 
 end
@@ -1882,7 +1882,7 @@ if Menu.ZedCombo.eSet.useE  and ValidTarget(target, skills.SkillE.range) and ski
 if Ghost2 and Ghost and ((myHero.health / myHero.maxHealth * 100) <= Menu.ZedCombo.SwapUlt) then 
   CastSpell(_R, myHero)
 end
-if Ghost and Whandler then`
+if Ghost and Whandler then
 
     CastSpell(_W)
 
@@ -2094,7 +2094,7 @@ function CastQ()
   --print(QHitchance)
   --print("CAstQ@")
   --print(QHitchance)
-  if QHitchance >= Menu.HP.HPCS and ValidTarget(target, 1200) then
+  if QHitchance >= 2 and ValidTarget(target, 1200) then
     --print("short")
   --print("laastecheck")
     if VIP_USER then
