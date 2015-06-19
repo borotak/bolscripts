@@ -339,7 +339,7 @@ HPred = HPrediction()
     
      Menu:addSubMenu("["..myHero.charName.." - Prodiction Settings]", "ProdSettings") -- Menu.ProdSettings.SelectProdiction
  -- Menu.selectProdSettings == 1 or 2
-	Menu.ProdSettings:addParam("SelectProdiction", "Select Prodiction", SCRIPT_PARAM_LIST, 1, {"HProdiction", "VPrediction", "Devine Prod"})
+	Menu.ProdSettings:addParam("SelectProdiction", "Select Prodiction", SCRIPT_PARAM_LIST, 1, {"HProdiction", "VPrediction", "Not Working!"})
  -- Menu.ProdSettings:addParam("OD", "OnDash", SCRIPT_PARAM_ONOFF, false)
   --Menu.ProdSettings:addParam("AD", "AfterDash", SCRIPT_PARAM_ONOFF, false)
  -- Menu.ProdSettings:addParam("AI", "AfterImmobile", SCRIPT_PARAM_ONOFF, false)
@@ -379,6 +379,7 @@ HPred = HPrediction()
    Menu.Ads.KS:addParam("useR", "Use R", SCRIPT_PARAM_ONOFF, false) -- Menu.Ads.KS.useR
    Menu.Ads.KS:addParam("useE", "Use E", SCRIPT_PARAM_ONOFF, false)
    Menu.Ads.KS:addParam("useQ", "Use Q", SCRIPT_PARAM_ONOFF, false)
+   
    Menu.Ads.KS:addParam("autoQ", "Auto Q", SCRIPT_PARAM_ONOFF, false)
    Menu.Ads.KS:addParam("KSB", "Steal Buffs", SCRIPT_PARAM_ONOFF, false)
   Menu.Ads.KS:addParam("igniteRange", "Minimum range to cast Ignite", SCRIPT_PARAM_SLICE, 470, 0, 600, 0)
@@ -436,9 +437,26 @@ Passivetime = math.huge
  -- pewpew = nil
   --pewpew = PassiveDamage() + GeRDamage()
 function OnTick()
-  
- 
-  
+     --[[  if target ~= nil and target.type == myHero.type and target.team ~= myHero.team and target.valid and not target.dead then
+      
+        for i=1, heroManager.iCount do
+        local target = heroManager:GetHero(i)
+          if ValidTarget(target) and target ~= nil and LevelR() ~= nil then
+          qDmg = getDmg("Q", target,myHero)
+          eDmg = getDmg("E", target,myHero)
+          rDmg = getDmg("R", target, myHero)
+          pDmg = getDmg("P", target, myHero)
+          local rDmgP, TypeDmg = getDmg("R",target,myHero,2)
+          rDmg = rDmg + LevelR()
+          if rDmgP ~= nil then
+            print(rDmgP)
+            print(rDmg)
+          end
+        end
+      end
+      end
+ --]]
+  --print(rDmg)
   --print(Stun)
   
   --print(Passive)
@@ -578,7 +596,7 @@ end
 
 function ProdictionCombo()
   
-  if target ~= nil and target.type == myHero.type and target.type == myHero.type and target.team ~= myHero.team then
+  if target ~= nil and target.type == myHero.type  and target.team ~= myHero.team then
     for i, target in ipairs(GetEnemyHeroes()) do
 		rDmg = getDmg("R", target, myHero)
     if  Menu.luxCombo.qSet.useQ and Menu.ProdSettings.SelectProdiction == 1 then
@@ -634,10 +652,10 @@ function Harass()
 	if target ~= nil and ValidTarget(target) and target.team ~= myHero.team and target.type == myHero.type then
     if Menu.ProdSettings.SelectProdiction == 2 then
   		if Menu.Harass.useQ and ValidTarget(target, skills.SkillQ.range) and Qready then
-        -- aanopassen Q
+       QVP()
       end
       if  Menu.Harass.useE and ValidTarget(target, skills.SkillE.range) and Eready then
-        CastSpell(_E, ts.target.x, ts.target.z)
+        EVP()
       end
     elseif Menu.ProdSettings.SelectProdiction == 1 then
       if ValidTarget(target, skills.SkillQ.range) and Qready and Menu.Harass.useQ then
@@ -816,8 +834,10 @@ if Menu.Ads.AZ then
 if not Passive then
   KSNoPassive()
 end
-if Passive then
-  KSWhitPassive()
+if Passive and Menu.Ads.KS.useR and target ~= nil then
+  if target.type == myHero.type and target.team ~= myHero.team and ValidTarget(target, skills.SkillR.range) and GetDistance(target, myHero) > 1300 then
+     KSWhitPassive()
+  end
   end
 	if Menu.Ads.KS.ignite then
 		IgniteKS()
@@ -1088,10 +1108,12 @@ function OnCreateObj(obj)
 --  print("kip")
    if GetDistance(obj, myHero, 1000) then 
   -- print(obj.name)
-   end
+ end
+ if obj and obj.team == myHero.team then
   if obj.name:find("LuxLightstrike_tar_green") or obj.name:find("Lux_Base_E_mis.troy") then
 		objE = obj
 	end
+  end
 	if obj ~= nil then
 		if FocusJungleNames[obj.name] and player.team == TEAM_RED then
       --print(obj.name)
@@ -1341,7 +1363,7 @@ end
 function KSNoPassive()
  -- print(rDmg)
   if not Passive then
-    if target ~= nil and target.type == myHero.type and target.team ~= myHero.team  and target.visible and ValidTarget(target) and not target.dead then
+    if target ~= nil and target.type == myHero.type and target.team ~= myHero.team and target.valid and not target.dead then
     --  if paardebek ~= nil then
         for i=1, heroManager.iCount do
         local target = heroManager:GetHero(i)
@@ -1350,21 +1372,22 @@ function KSNoPassive()
           eDmg = getDmg("E", target,myHero)
           rDmg = getDmg("R", target, myHero)
           pDmg = getDmg("P", target, myHero)
-          rDmg = rDmg + LevelR()
+         --  rDmg = rDmg + LevelR()
         --  print(rDmg)
             if Menu.ProdSettings.SelectProdiction == 2 and ValidTarget(target)then
-              if target.health <= qDmg and Qready and Menu.Ads.KS.useQ then
+              if target.health <= qDmg and Qready and Menu.Ads.KS.useQ and ValidTarget(target, skills.SkillQ.range) then
               QVP()
              -- print("KSQ")
               end
-              if target.health <= eDmg and Eready and Menu.Ads.KS.useE then
+              if target.health <= eDmg and Eready and Menu.Ads.KS.useE and ValidTarget(target, skills.SkillE.range) then
               EVP()
             --  print("KSE")
               end
               if target.health <= rDmg and Rready and Menu.Ads.KS.useR  and ValidTarget(target, skills.SkillR.range)then
               RVP()
-            print("KSR")
-              end
+            print(rDmg)
+            end
+            
              --[[ if target.health <=  qDmg + eDmg + pDmg and Menu.Ads.KS.useQ and Menu.Ads.KS.useE and Vathen
               QVP()
               EVP()
@@ -1384,31 +1407,11 @@ function KSNoPassive()
             CastE()
             elseif target.health <= rDmg and Rready and Menu.Ads.KS.useR  and ValidTarget(target, skills.SkillR.range)then
             CastR()
+          --  print("tepper je bent eccht opgeschoten vandaag")
         
           
             end
-          elseif Menu.ProdSettings.SelectProdiction == 3 and ValidTarget(target) then
-              if target.health <= qDmg and Qready and Menu.Ads.KS.useQ then
-              DevineQ()
-             -- print("KSQ")
-              end
-              if target.health <= eDmg and Eready and Menu.Ads.KS.useE then
-              DevineE()
-             -- print("KSE")
-              end
-              if target.health <= rDmg and Rready and Menu.Ads.KS.useR and ValidTarget(target, skills.SkillR.range) then
-              DevineR()
-           --   print("KSR2")
-              end
-       
-     
-          if Stun and target.health <= eDmg + rDmg + pDmg and Rready and Eready and ValidTarget(target, skills.SkillE.range) and Menu.Ads.KS.useE and Menu.Ads.KS.useR then
-            DevineE()
-            DevineR()
-            --print("big combo2")
-            KSAA()
-           end
-            end
+         end
         end
       end
     end
@@ -1428,64 +1431,52 @@ function KSWhitPassive()
           eDmg = getDmg("E", target,myHero)
           rDmg = getDmg("R", target, myHero)
           pDmg = getDmg("P", target, myHero)
+          local rDmgP, TypeDmg = getDmg("R",target,myHero,2)
+          local eDmgP = getDmg("E",target,myHero,2)
+          local qDmgP = GetDmg("Q",target,myHero,2)
           rDmg = rDmg + LevelR()
-         -- print(ipad + rDmg)
-          if Menu.ProdSettings.SelectProdiction == 2 then 
-          --  print(" check van engels")
-          --[[if paardebek ~= nil then
-            if target.health < paardebek then
-            KSAA()
-          end--]]
-          end
-            if target.health <= rDmg + pDmg and Rready and Menu.Ads.KS.useR and ValidTarget(target, skills.SkillR.range) then
+          if rDmgP ~= nil then
+            --print(rDmgP)
+            end
+       
+            if target.health <= rDmgP and Rready and Menu.Ads.KS.useR and ValidTarget(target, skills.SkillR.range)  then
+              if Menu.ProdSettings.SelectProdiction == 2 then 
             RVP()
-            print("VP")
-           --print("KANKERKANKERKANKERKANKERKANKER")
+              elseif Menu.ProdSettings.SelectProdiction == 1 then
+                CastR()
+           -- print(rDmgP)
+              end
             end
-            if Stun and target.health <= eDmg + rDmg + pDmg and Qready and Eready and Rready and ValidTarget(target, skills.SkillE.range) and Menu.Ads.KS.useE and Menu.Ads.KS.useR then
-            EVP()
-            RVP()
-           -- print("1566")
-            KSAA()
+            if target.health <= eDmgP and Eready and Menu.Ads.KS.useE and ValidTarget(target, skills.SkillE.range) then
+              if Menu.ProdSettings.SelectProdiction == 2 then
+                EVP()
+              elseif Menu.ProdSettings.SelectProdiction == 1 then
+                CastE()
+              end
             end
-          elseif Menu.ProdSettings.SelectProdiction == 1  and ValidTarget(target) then
-            if target.health <= paardebek then
-            KSAA()
+            if target.health <= QDmgP and Qready and Menu.Ads.KS.useQ and ValidTarget(target, skills.SkillQ.range) then
+              if Menu.ProdSettings.SelectProdiction == 2 then
+                QVP()
+              elseif Menu.ProdSettings.SelectProdiction == 1 then
+                CastQ()
+              end
             end
-            if target.health <= rDmg + pDmg and Rready and Menu.Ads.KS.useR and ValidTarget(target, skills.SkillR.range)then
-            CastR()
-            print("1508")
-            end
-            if Stun and target.health <= rDmg + pDmg + eDmg  and Rready and Eready and Menu.Ads.KS.useE and Menu.Ads.KS.useR then
-           
-            --CastE()
-           -- CastR()
-           -- print("1504")
-            --KSAA()
-            end
-          elseif Menu.ProdSettings.SelectProdiction == 3 then
+            
             if target.health <= pDmg then
             KSAA()
             end
-            if target.health <= rDmg + pDmg and Rready and Menu.Ads.KS.useR and ValidTarget(target, skills.SkillR.range) then
-            DevineR()
-           -- print("1508"
-          -- print(" veel te hoog")
-            end
-            if Stun and target.health <= rDmg + pDmg + eDmg + pDmg and Rready and Eready and Menu.Ads.KS.useE and Menu.Ads.KS.useR then
            
-           -- DevineE()
-          --  DevineR()
-           -- print("ipad te hoog")
-           -- print("1504")
-           -- KSAA()
+   
+
           end
-          end
-          end
-        end
-      end
-    end
-  
+
+end
+end
+end
+end
+
+
+
   
 
  
@@ -1612,7 +1603,7 @@ end
 				maxdistance = skillData[object.charName][spelltype]["maxdistance"]
 			end
 		else
-			Shield = true
+			Shield = false
 		end
 		for i=1, heroManager.iCount do
 			local allytarget = heroManager:GetHero(i)
@@ -1766,23 +1757,23 @@ end
 
 -- HP
 function CastR()
-print("try R")
+
   if target ~= nil and target.type == myHero.type and target.team ~= myHero.team then
 local RPos, RHitchance = HPred:GetPredict(Lux_R, target, myHero)
-
-  if RHitchance <= 2 then
-  --print("laastRchRck")
+--print(RHitchance)
+  if RHitchance > 0 then
+--print("stap1")
     if VIP_USER then
       Packet("S_CAST", {spellId = _R, toX = RPos.x, toY = RPos.z, fromX = RPos.x, fromY = RPos.z}):send()
-    --  print("castR3")
-    
-  end
+    --  print("castQ3")
+    else
+      CastSpell(_R, RPos.x, RPos.z)
   
 end
 end
     
   end  
-  
+  end
 
   
   
