@@ -1,12 +1,12 @@
 if myHero.charName ~= "Evelynn"  or not VIP_USER then return end
-local version = 0.1
+local version = 0.2
 local AUTOUPDATE = true
 local SCRIPT_NAME = "SXEvelynn"
 require 'VPrediction'
 require "SxOrbwalk"
 --require 'Prodiction' 
 require 'Collision'
-require 'DivinePred'
+--require 'DivinePred'
 require 'HPrediction'
 
 
@@ -40,7 +40,7 @@ local target = nil
 
 function CheckUpdate()
         local scriptName = "SXEvelynn"
-        local version = 1.0
+        local version = 1.2
         local ToUpdate = {}
         ToUpdate.Version = version
         ToUpdate.Host = "raw.githubusercontent.com"
@@ -167,13 +167,8 @@ function OnLoad()
 	initComponents()
    HookPackets()
    
-   Spell_Q.collisionM['Evelynn'] = false
-  Spell_Q.collisionH['Evelynn'] = false -- or false (sometimes, it's better to not consider it)
-  Spell_Q.delay['Evelynn'] = .25
-  Spell_Q.range['Evelynn'] = 500
-  Spell_Q.speed['Evelynn'] = 1200
-  Spell_Q.type['Evelynn'] = "DelayLine" -- (it has tail like comet)
-  Spell_Q.width['Evelynn'] = 500
+   Evelyn_R  = HPSkillshot({type = "PromptCircle", delay = 0.25, range = 650, speed = 1300, width = 150, radius = 28})
+
   
   
  
@@ -201,7 +196,7 @@ function initComponents()
   Spell_W.type['Evelynn'] = "DelayLine" -- (it has tail like comet)
   Spell_W.width['Evelynn'] = 240--]]
  VP = VPrediction()
-  DP = DivinePred()
+--  DP = DivinePred()
     HPred = HPrediction()
    -- SOW Declare
   -- Orbwalker = SOW(VP)
@@ -259,7 +254,7 @@ function initComponents()
  
  Menu:addSubMenu("["..myHero.charName.." - Prodiction Settings]", "ProdSettings") -- Menu.ProdSettings.SelectProdiction
  -- Menu.selectProdSettings == 1 or 2
-	Menu.ProdSettings:addParam("SelectProdiction", "Select Prodiction", SCRIPT_PARAM_LIST, 1, {"Devine", "VPrediction", "HPrediction"})
+	Menu.ProdSettings:addParam("SelectProdiction", "Select Prodiction", SCRIPT_PARAM_LIST, 1, {"i removed Devine", "VPrediction", "HPrediction"})
 
  
  Menu:addSubMenu("["..myHero.charName.." - Additionals]", "Ads")
@@ -1036,36 +1031,27 @@ function OnRemoveBuff(unit, buff)
   end
 end
 
-function CastR()
-  if target ~= nil then
-  RPos, RHitChance = HPred:GetPredict("R", target, myHero)
+
+ function CastR()
+  --print("castQ")
   
-  if QHitChance >= 2 then
-  
+  if target ~= nil and target.type == myHero.type and target.team ~= myHero.team then
+ -- QPos, QHitChance = HPred:GetPredict("Q", target, myHero)
+  local RPos, RHitchance = HPred:GetPredict(Evelyn_R, target, myHero)
+  --print(QHitchance)
+  --print("CAstQ@")
+ -- print(QHitchance)
+  if RHitchance >= 1 then
+    --print("short")
+  --print("laastecheck")
     if VIP_USER then
       Packet("S_CAST", {spellId = _R, toX = RPos.x, toY = RPos.z, fromX = RPos.x, fromY = RPos.z}):send()
+    --  print("castQ3")
     else
       CastSpell(_R, RPos.x, RPos.z)
     end
-    
   end
-  
 end
 end
 
-function CastW()
-  if target ~= nil then
-  WPos, WHitChance = HPred:GetPredict("W", target, myHero)
-  
-  if WHitChance >= 2 then
-  
-    if VIP_USER then
-      Packet("S_CAST", {spellId = _W, toX = WPos.x, toY = WPos.z, fromX = WPos.x, fromY = WPos.z}):send()
-    else
-      CastSpell(_W, WPos.x, WPos.z)
-    end
-    
-  end
-  
-end
-end
+
