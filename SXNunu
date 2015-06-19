@@ -854,7 +854,7 @@ function OnSendPacket(p)
   --print(string.format('%02X', p.header))
   if ulti then
    -- print(string.format('%02X', p.header))
-  if p.header == 0x00114 or p.header == 0x0114 or p.header == 0x00F2 then p:Block() end
+  if p.header == 0x00114 or p.header == 0x0114 or p.header == 0x0026 then p:Block() end
   --print("done")
   -- patch 5.7 p.header == 0x00D2 
 end
@@ -908,7 +908,7 @@ end
 --]]
 --[[
 function OnSendPacket(p)
-  if p.header == 0x0114 or p.header == 0x0029 or p.header == 0x0054 then return end
+  if p.header == 0x004F or p.header == 0x006C or p.header == 0x0054 then return end
   
   print(string.format('%02X', p.header))
 end
