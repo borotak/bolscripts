@@ -1,5 +1,5 @@
 if myHero.charName ~= "Zed"  or not VIP_USER then return end
-local version = 0.2
+local version = 0.3
 local AUTOUPDATE = true
 local SCRIPT_NAME = "SXZed"
 require 'VPrediction'
@@ -40,7 +40,7 @@ local target = nil
 
 function CheckUpdate()
         local scriptName = "SXZed"
-        local version = 1.0
+        local version = 1.3
         local ToUpdate = {}
         ToUpdate.Version = version
         ToUpdate.Host = "raw.githubusercontent.com"
@@ -165,37 +165,26 @@ function OnLoad()
 	if _G.ScriptLoaded then	return end
 	_G.ScriptLoaded = true
 	initComponents()
-   HookPackets()
-   Zed_Q  = HPSkillshot({type = "DelayLine", delay = 0.5, range = 900, speed = math.huge,  width = 45})
-
---HPSkillshot({type = "DelayLine", delay = 0.25, range = 1525, speed = 1200, collisionM = true, collisionH = true, width = 90, IsVeryLowAccuracy = true})
-Zed_W  = HPSkillshot({type = "PromptCircle", delay = 0.25, range = 550, speed = 1600, width = 40, radius = 28})
- 
+  HookPackets()
+  Zed_Q  = HPSkillshot({type = "DelayLine", delay = 0.5, range = 1500, speed = math.huge,  width = 45})
+  Zed_W  = HPSkillshot({type = "PromptCircle", delay = 0.25, range = 550, speed = 1600, width = 40, radius = 28})
 end
 function initComponents()
- 
- VP = VPrediction()
-  DP = DivinePred()
-    HPred = HPrediction()
-   -- SOW Declare
-  -- Orbwalker = SOW(VP)
-  -- Target Selector
-   ts = TargetSelector(TARGET_LESS_CAST_PRIORITY, 2500)
-  
- Menu = scriptConfig("SXZed by SyraX", "ZedMA")
-
-   if _G.MMA_Loaded ~= nil then
+VP = VPrediction()
+DP = DivinePred()
+HPred = HPrediction()
+ts = TargetSelector(TARGET_LESS_CAST_PRIORITY, 2500)
+Menu = scriptConfig("SXZed by SyraX", "ZedMA")
+  if _G.MMA_Loaded ~= nil then
      PrintChat("<font color = \"#33CCCC\">MMA Status:</font> <font color = \"#fff8e7\"> Loaded</font>")
      isMMA = true
  elseif _G.AutoCarry ~= nil then
       PrintChat("<font color = \"#33CCCC\">SAC Status:</font> <font color = \"#fff8e7\"> Loaded</font>")
      isSAC = true
  else
-     PrintChat("<font color = \"#33CCCC\">OrbWalker not found:</font> <font color = \"#fff8e7\"> Loading SX</font>")
+    PrintChat("<font color = \"#33CCCC\">OrbWalker not found:</font> <font color = \"#fff8e7\"> Loading SX</font>")
     Menu:addSubMenu("["..myHero.charName.."] - Orbwalking Settings", "Orbwalking")
 		SxOrb:LoadToMenu(Menu.Orbwalking)
-
-   -- Menu:addTS(ts)
     end
     
  Menu:addSubMenu("["..myHero.charName.." - Combo]", "ZedCombo")
@@ -213,16 +202,11 @@ function initComponents()
   Menu.ZedCombo:addParam("SwapUlt","Swap back with ult if hp < %", SCRIPT_PARAM_SLICE, 15, 2, 100, 0)
   Menu.ZedCombo:addParam("swap", "When Mark will kill target Swap", SCRIPT_PARAM_ONOFF, true)
   
---Menu.ZedCombo:addParam("dev", "Solution", SCRIPT_PARAM_ONOFF, false)
+
 Menu.ZedCombo:addParam("Cap", "Dive with W combo to pick up a kill", SCRIPT_PARAM_ONOFF, true)
 Menu.ZedCombo:addParam("l", "Swap ulti underturret or count + 5 +", SCRIPT_PARAM_INFO)
 Menu.ZedCombo:addParam("Combomode", "Choose Combo Mode", SCRIPT_PARAM_LIST, 1, {"LineCombo", "Traingle Combo"})
 
-
-
-  --Menu.ZedCombo:addParam("WW", "Swap escape R", SCRIPT_PARAM_ONOFF, false)
-  -- Menu.ZedCombo.WW
- -- Menu.ZedCombo:addParam("NO", "Don't use that beta shit", SCRIPT_PARAM_ONOFF, false)
 
  Menu:addSubMenu("["..myHero.charName.." - Harass]", "Harass")
   Menu.Harass:addParam("harass", "Harass", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("G"))
@@ -284,16 +268,18 @@ Menu.ZedCombo:addParam("Combomode", "Choose Combo Mode", SCRIPT_PARAM_LIST, 1, {
   PrintChat("<font color = \"#FFA319\">SX</font><font color = \"#52524F\">Zed/font> <font color = \"#FFFFFF\">by</font><font color = \"#FF0066\"> SyraX</font><font color = \"#00FF00\"> V"..version.."</font>")
 end
 
- pis = false
- kut = math.huge
- Positie = nil
- pieter = false
- gaap = false
- timertimer = math.huge
-   stap2 = false 
-    stap2timer = math.huge
-     stap3 = false
-    stap3timer = math.huge
+pis = false
+kut = math.huge
+Positie = nil
+pieter = false
+gaap = false
+timertimer = math.huge
+stap2 = false 
+stap2timer = math.huge
+stap3 = false
+stap3timer = math.huge
+DeathTimer = math.huge
+TargetDeath = false
 function OnTick()
 	target = GetCustomTarget()
 	targetMinions:update()
@@ -301,15 +287,27 @@ function OnTick()
 	jungleMinions:update()
 	CDHandler()
 	KillSteal()
-  if MarkDamage ~= nil then
- -- print(MarkDamage)
+  Calculation()
+  if TargetDeath then
+    if DeathTimer + 2 <= GetGameTimer() then
+      TargetDeath = false
+      DeathTimer = math.huge
+    end
+  end
+if MarkDamage ~= nil then
+  --print(MarkDamage)
 end
-    if target.health <= MarkDamage and Menu.ZedCombo.swap then
-    --    print("shiitt")
-        CastSpell(_R, myHero)
-        end
+if target ~= nil and Mark then
+  if target.health <= MarkDamage and Menu.ZedCombo.swap then
+    CastSpell(_R, myHero)
+    TargetDeath = true
+    DeathTimer = GetGameTimer()
+  end
+end
+    
+  
 if not Mark then
-  BA = 0
+BA = 0
 CA = 0 
 QQ = 0
 WW = 0 
@@ -325,65 +323,29 @@ BAaa = 0
 BAaa = 0
 MarkDamage = 0
 end
- -- print(CHECK)
---print(stap2)
- if gaap and pieter then 
-   if timertimer + 1 then
-     pieter = false
-     timertimer = math.huge
-   end
- end
+
+if gaap and pieter then 
+  if timertimer + 1 then
+    pieter = false
+    timertimer = math.huge
+  end
+end
  
---[[
-  if stap2timer + 2 then 
-    CastSpell(_W)
-   print (" op als dit werktWWWW")
-    stap2 = false 
-    stap2timer = math.huge
+
+if target ~= nil and Ghost and Whandler and target.type == myHero.type and target.team ~= myHero.team and target.valid then
+  if GetDistance(GhostPos, target) <= skills.SkillE.range then
+    CastSpell(_E)
   end
-
-
-
-  if stap3timer + 2 then 
-    CastSpell(_R)
-       print (" op als dit werktRRRR")
-    stap3 = false
-    stap3timer = math.huge
-  end
---]]
---[[while not LineCombo(target, 0) or TraingleCombo(target, 0) do
-    CHECK = false
-  end--]]
- -- print(Menu.ZedCombo.combomode)
--- (Menu.ZedCombo.SwapUlt)
- --[[ if Menu.ZedCombo.dev then
-    Solution()
-    end--]]
-
---[[if target ~= nil and target.team ~= myHero.team and target.type == myHero.type then
-  if Mark then 
-    local paard = myHero.maxDamage
-    local geit = myHero:CalcDamage(target, eDmg, )--]]
-  --print(TextList[KillText[i]])
+end
   
-  if target ~= nil and Ghost and Whandler and target.type == myHero.type and target.team ~= myHero.team and target.valid then
-    if GetDistance(GhostPos, target) <= skills.SkillE.range then
-      CastSpell(_E)
-    end
-  end
-  
-  if target ~= nil and Ghost and Whandler and target.type == myHero.type and target.team ~= myHero.team and target.valid and GhostPos ~= nil then 
-    if GetDistance(GhostPos, target) <= skills.SkillQ.range then
-       if Menu.ZedCombo.qSet.useQ then
-            if Menu.ProdSettings.SelectProdiction == 2 then
+if target ~= nil and Ghost and Whandler and target.type == myHero.type and target.team ~= myHero.team and target.valid and GhostPos ~= nil then 
+  if GetDistance(GhostPos, target) <= skills.SkillQ.range then
+    if Menu.ZedCombo.qSet.useQ then
+      if Menu.ProdSettings.SelectProdiction == 2 then
 			local CastPosition, HitChance, Position = VP:GetLineCastPosition(target, skills.SkillQ.delay, skills.SkillQ.width, debug, skills.SkillQ.speed, myHero, false)
-      --print("check 2")
-            if HitChance >= 2  then
-             -- print("check1")
+      if HitChance >= 2  then
 				CastSpell(_Q, CastPosition.x, CastPosition.z)
-       -- print("332")
-       -- print("301")
-            end
+      end
   elseif Menu.ProdSettings.SelectProdiction == 1 then
     if Menu.ZedCombo.qSet.useQ and ValidTarget(target, debug) and skills.SkillQ.range  then
       DevineQ()
@@ -393,48 +355,10 @@ end
       CastQ()
     end
   end
-  
-    end
   end
   end
-      
-  
-  
-  --print(myHero.totalDamage)
-  --print(Q)
- -- print("E")
- -- print(AAA)
- --print(Mark)
-  --print(levelR())
-
- --print(Positie)
---print(GhostPos)
---print(GhostPos)
-
--- print(Ghost)
+end
  
- -- print("true")
-
-
---print(Positie)
-  --print(pis)
-  
-  --print(Passive)
-  --[[
-  if pis then
-    if kut + 4 <= GetGameTimer() then
-      pis = false
-      kut = math.huge
-    end
-  end
-  --]]
- -- print(ulti)
-
-   
-
-
- 
-
 	if Menu.Ads.VIP.skin and VIP_USER and skinChanged() then
 		GenModelPacket("Zed", Menu.Ads.VIP.skin1)
 		lastSkin = Menu.Ads.VIP.skin1
@@ -442,20 +366,20 @@ end
   
 
 if click == 2 then
-       DoubleClick()
-       if click == 2 then
-         click = 0
-        end
-   end
-   if click >= 3 then
-   click = 0
-   end
-   if click == 1 then
-      if time + 0.4 <= GetGameTimer() then
-         click = 0
-         time  = math.huge
-      end
-    end 
+  DoubleClick()
+  if click == 2 then
+    click = 0
+  end
+end
+if click >= 3 then
+  click = 0
+end
+if click == 1 then
+  if time + 0.4 <= GetGameTimer() then
+    click = 0
+    time  = math.huge
+  end
+end 
  
 	if Menu.Ads.autoLevel then
 		AutoLevel()
@@ -1351,7 +1275,16 @@ function OnProcessSpell(object, spell)
           EE = EE + 1.
          -- print(EE)
         end
-          if target and target.team ~= myHero.team and target.type == myHero.type and not target.dead then
+        end
+     
+   
+end
+end
+
+
+
+function Calculation()
+            if target and target.team ~= myHero.team and target.type == myHero.type and not target.dead then
      for i=1, heroManager.iCount do
     local enemy = heroManager:GetHero(i)
     if ValidTarget(enemy) and enemy ~= nil then
@@ -1372,21 +1305,11 @@ function OnProcessSpell(object, spell)
       EEEEE = EEEE * RR()
       BAaaa = BAaa * RR()
       MarkDamage = AD + QQQQQ + EEEEE + BAaaa
+    end
+  end
+end
+end
     -- print(MarkDamage)
-      --CAa = CA 
-     -- print(Menu.ZedCombo.swap)
-  
-
-
-end
-end
-
-end
-
-end
-end
-end
-
  --[[ if p.header == 0x00B5 then p:Block() end
 end
 
@@ -1801,7 +1724,7 @@ function TraingleCombo(target, typeCombo)
  -- print("jaja")
   --CHECK = true
   --local gaap = false
-  if target ~= nil and target.type == myHero.type and target.team ~= myHero.team and not target.dead  and target.valid then
+  if target ~= nil and target.type == myHero.type and target.team ~= myHero.team and not target.dead  and target.valid and not TargetDeath and Menu.ZedCombo.combo then
     if skills.SkillW.ready and skills.SkillQ.ready and skills.SkillR.ready then
       if ValidTarget(target, skills.SkillR.range) and myHero:GetSpellData(_R).name ~= "ZedR2" then
            CastSpell(_R, target)
@@ -1882,7 +1805,7 @@ if Menu.ZedCombo.eSet.useE  and ValidTarget(target, skills.SkillE.range) and ski
 if Ghost2 and Ghost and ((myHero.health / myHero.maxHealth * 100) <= Menu.ZedCombo.SwapUlt) then 
   CastSpell(_R, myHero)
 end
-if Ghost and Whandler then
+if Ghost and Whandler and Mark then
 
     CastSpell(_W)
 
@@ -1910,8 +1833,11 @@ end
       
 function LineCombo(target, typeCombo)
 --CHECK = true
-  if target ~= nil and target.type == myHero.type and target.team ~= myHero.team and not target.dead then
+--print(Menu.ZedCombo.combo)
+  if target ~= nil and target.type == myHero.type and target.team ~= myHero.team and not target.dead and not TargetDeath and Menu.ZedCombo.combo then
+     --print("line2")
     if skills.SkillW.ready and skills.SkillQ.ready and skills.SkillR.ready then
+     -- print("line2")
       if ValidTarget(target, skills.SkillR.range) and myHero:GetSpellData(_R).name ~= "ZedR2" then
            CastSpell(_R, target)
            CHECK = true
@@ -1940,7 +1866,7 @@ function LineCombo(target, typeCombo)
                 AA()
               end
               AA()
-                  if Whanler and Ghost then
+                  if Whanler and Ghost  then
                   CastSpell(_W)
                     if skills.SkillQ.ready and ValidTarget(target, skills.SkillQ.range) then
                       if  Menu.ProdSettings.SelectProdiction == 2 then
@@ -1948,7 +1874,8 @@ function LineCombo(target, typeCombo)
             if HitChance >= 2 and GetDistance(CastPosition) < 900 then
 				CastSpell(_Q, CastPosition.x, CastPosition.z)
        -- print("1655")
-            end
+          end
+          end
   elseif Menu.ProdSettings.SelectProdiction == 1 then
     if Menu.ZedCombo.qSet.useQ and ValidTarget(target, debug) and skills.SkillQ.range  then
       DevineQ()
@@ -1994,7 +1921,7 @@ if Menu.ZedCombo.eSet.useE  and ValidTarget(target, skills.SkillE.range) and ski
 
 end
 --CHECK = false
-end
+
 
 --[[
     
@@ -2086,15 +2013,17 @@ end
 -- ulti
 
 function CastQ()
-  --print("castQ")
+ -- print("castQ")
   
-  if target ~= nil and target.type == myHero.type and target.team ~= myHero.team then
+  if target ~= nil and target.type == myHero.type and target.team ~= myHero.team and target.valid then
  -- QPos, QHitChance = HPred:GetPredict("Q", target, myHero)
+ --print("Paasdasas")
   local QPos, QHitchance = HPred:GetPredict(Zed_Q, target, myHero)
-  --print(QHitchance)
+ -- print(QHitchance)
   --print("CAstQ@")
   --print(QHitchance)
-  if QHitchance >= 2 and ValidTarget(target, 1200) then
+  if QHitchance >= 0.9 then
+   -- print("wow")
     --print("short")
   --print("laastecheck")
     if VIP_USER then
