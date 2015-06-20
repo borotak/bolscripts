@@ -1236,8 +1236,10 @@ BAaa = 0
 MarkDamage = 0
             
               function RR()
-                
-                  if myHero:GetSpellData(_R).level == 1 then
+                if myHero:GetSpellData(_R).level == 0 then
+                    return 0
+                    
+                  elseif myHero:GetSpellData(_R).level == 1 then
                 return 20
         elseif myHero:GetSpellData(_R).level == 2 then
                 return 35
