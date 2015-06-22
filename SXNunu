@@ -1,5 +1,5 @@
 if myHero.charName ~= "Nunu"  or not VIP_USER then return end
-local version = 0.6
+local version = 0.7
 local AUTOUPDATE = true
 local SCRIPT_NAME = "SXNunu"
 require 'VPrediction'
@@ -13,7 +13,7 @@ local qOff, wOff, eOff, rOff = 0,0,0,0
 local abilitySequence = {1,3,2,1,3,4,3,3,3,1,4,1,1,2,2,4,2,2}
 local Ranges = { AA = 125 }
 local skills = {
-	SkillQ = { ready = true, name = "Consume", range = 125, delay = 0.25, speed = 1800.0, width = 70.0 },
+	SkillQ = { ready = true, name = "Consume", range = 250, delay = 0.25, speed = 1800.0, width = 70.0 },
 	SkillW = { ready = true, name = "Blood Boil", range = 700, delay = 0.0, speed = 0.0, width = 0.0 },
 	SkillE = { ready = true, name = "Ice Blast", range = 550, delay = 0.25, speed = 1800.0, width = 70.0 },
 	SkillR = { ready = true, name = "Absolute Zero", range = 600, delay = 0.1, speed = 7777.0, width = 1300.0 },
@@ -36,7 +36,7 @@ local target = nil
 
 function CheckUpdate()
         local scriptName = "SXNunu"
-        local version = 1.6
+        local version = 1.7
         local ToUpdate = {}
         ToUpdate.Version = version
         ToUpdate.Host = "raw.githubusercontent.com"
@@ -216,7 +216,7 @@ function initComponents()
  
  Menu:addSubMenu("["..myHero.charName.." - Jungleclear]", "Jungleclear")
     Menu.Jungleclear:addParam("jclr", "Jungleclear Key", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("V"))
-  Menu.Jungleclear:addParam("useClearQ", "Use Q in Jungleclear", SCRIPT_PARAM_ONOFF, true)
+ -- Menu.Jungleclear:addParam("useClearQ", "Use Q in Jungleclear", SCRIPT_PARAM_ONOFF, true)
  Menu.Jungleclear:addParam("useClearW", "Use W in Jungleclear", SCRIPT_PARAM_ONOFF, false)
     Menu.Jungleclear:addParam("useClearE", "Use E in Jungleclear", SCRIPT_PARAM_ONOFF, true)
     Menu.Jungleclear:addParam("Smite", "Smite Q", SCRIPT_PARAM_ONOFF, true)
@@ -254,7 +254,7 @@ function initComponents()
      lastSkin = Menu.Ads.VIP.skin1
     end
   
- PrintChat("<font color = \"#FFA319\">SX</font><font color = \"#52524F\">VoliBear</font> <font color = \"#FFFFFF\">by</font><font color = \"#FF0066\"> SyraX</font><font color = \"#00FF00\"> V"..version.."</font>")
+ PrintChat("<font color = \"#FFA319\">SX</font><font color = \"#52524F\">Nunu</font> <font color = \"#FFFFFF\">by</font><font color = \"#FF0066\"> SyraX</font><font color = \"#00FF00\"> V"..version.."</font>")
 end
 
 click = 0
@@ -272,6 +272,7 @@ function OnTick()
 	KillSteal()
   SxOrb:ForceTarget(Target)
   findadc()
+ --print(Dragon)
  -- print(Passive)
   
  --rint(AreaEnemyCount())
@@ -452,8 +453,206 @@ function safeme()
 end
 end
 end
-    
+Murk = nil
+Murk2 = nil
+Razor = nil
+Razor2 = nil
+Red = nil
+Red2 = nil
+Blue = nil
+Blue2 = nil
+Dragon = nil
+Baron = nil
+Gromp = nil
+Gromp2 = nil
+Krug2 = nil
 
+function OnCreateObj(object)
+  --print("Kerel")
+		if object and object.valid and not object.dead then
+    --  print("kerel2")
+		if object ~= nil  and object.name ~= nil then
+   --   print("kerel3")
+      if object.name:find("SRU_Murkwolf8.1.1") then Murk = object
+         --print("murk")
+
+    elseif object.name:find("SRU_Murkwolf2.1.1") then Murk2 = object
+       -- print("Murk2")
+ 
+    elseif object.name:find("SRU_Razorbeak3.1.1") then Razor = object
+       --print("Razor")
+
+       elseif object.name:find("SRU_Razorbeak9.1.1") then Razor2 = object
+        --  print("Razor2")
+  
+      elseif object.name:find("SRU_Gromp14.1.1") then Gromp = object
+       -- print("Gromp")
+
+         elseif object.name:find("SRU_Gromp13.1.1") then Gromp2 = object
+        --   print("Gromp2")
+
+      elseif object.name:find("SRU_Krug5.1.2") then Krug = object
+        --print("krug")
+ 
+         elseif object.name:find("SRU_Krug11.1.2") then Krug2 = object
+
+      elseif object.name:find("SRU_Red4.1.1") then Red = object
+         -- print("Red")
+
+         elseif object.name:find("SRU_Red10.1.1") then Red2 = object
+           --  print("Red2")
+
+      elseif object.name:find("SRU_Blue1.1.1") then Bleu = object
+         -- print("Blue")
+
+         elseif object.name:find("SRU_Blue7.1.1") then Blue2 = object
+          -- print("blue2")
+
+      elseif object.name:find("SRU_Dragon6.1.1") then Dragon = object
+        -- print("Dragon")
+   
+        elseif object.name:find("SRU_Baron12.1.1") then Baron = object
+         -- print("Baron")
+
+        end
+        end
+   
+ 
+    end
+  
+
+end
+
+function OnDeleteObj(object)
+ -- print("Kerel")
+ --if object and object.name ~= "missile" then print(object.name) end
+		if object and object.valid and not object.dead then
+     -- print("kerel2")
+		if object ~= nil  and object.name ~= nil then
+     -- print("kerel3")
+      if object.name == "SRU_Murkwolf8.1.1" then Murk = nil
+       --  print("murk")
+
+    elseif object.name == "SRU_Murkwolf2.1.1" then Murk2 = nil
+       -- print("Murk2")
+ 
+    elseif object.name == "SRU_Razorbeak3.1.1" then Razor = nil
+      -- print("Razor")
+
+       elseif object.name == "SRU_Razorbeak9.1.1" then Razor2 = nil
+        --  print("Razor2")
+  
+      elseif object.name == "SRU_Gromp14.1.1" then Gromp = nil
+       -- print("Gromp")
+
+         elseif object.name == "SRU_Gromp13.1.1" then Gromp2 = nil
+         --  print("Gromp2")
+
+      elseif object.name == "SRU_Krug5.1.2" then Krug = nil
+      --  print("krug")
+ 
+         elseif object.name == "SRU_Krug11.1.2" then Krug2 = nil
+
+      elseif object.name == "SRU_Red4.1.1" then Red = nil
+        --  print("Red")
+
+         elseif object.name == "SRU_Red10.1.1" then Red2 = nil
+          --   print("Red2")
+
+      elseif object.name == "SRU_Blue1.1.1" then Bleu = nil
+         -- print("Blue")
+
+         elseif object.name == "SRU_Blue7.1.1" then Blue2 = nil
+         --  print("blue2")
+
+      elseif object.name == "SRU_Dragon6.1.1" then Dragon = nil
+         --print("Dragon")
+   
+        elseif object.name == "SRU_Baron12.1.1" then Baron = nil
+         -- print("Baron")
+        end
+        end
+    end
+end
+
+
+    
+    
+    function SmiteQ()
+    --  print("baas")
+       if Murk ~= nil then
+           if Menu.Jungleclear.Smite and  skills.SkillQ.ready and ValidTarget(Murk, skills.SkillQ.range) and Murk.health <= Qdamage() then
+        CastSpell(_Q, Murk)
+        
+        
+          end
+    end
+    if Murk2 ~= nil then
+      if Menu.Jungleclear.Smite and  skills.SkillQ.ready and ValidTarget(Murk2, skills.SkillQ.range) and Murk2.health <= Qdamage() then
+        CastSpell(_Q, Murk2)
+          end
+    end
+    if Razor ~= nil then
+      if Menu.Jungleclear.Smite and  skills.SkillQ.ready and ValidTarget(Razor, skills.SkillQ.range) and Razor.health <= Qdamage() then
+        CastSpell(_Q, Razor)
+          end
+end
+if Razor2 then
+         if Menu.Jungleclear.Smite and  skills.SkillQ.ready and ValidTarget(Razor2, skills.SkillQ.range) and Razor2.health <= Qdamage() then
+        CastSpell(_Q, Razor2)
+          end
+      end
+      if Gromp ~= nil then
+        if Menu.Jungleclear.Smite and  skills.SkillQ.ready and ValidTarget(Gromp, skills.SkillQ.range) and Gromp.health <= Qdamage() then
+        CastSpell(_Q, Gromp)
+          end
+       end
+       if Gromp2 ~= nil then
+           if Menu.Jungleclear.Smite and  skills.SkillQ.ready and ValidTarget(Gromp2, skills.SkillQ.range) and Gromp2.health <= Qdamage() then
+        CastSpell(_Q, Gromp2)
+          end
+      end
+      if Krug ~= nil then
+        if Menu.Jungleclear.Smite and  skills.SkillQ.ready and ValidTarget(Krug, skills.SkillQ.range) and Krug.health <= Qdamage() then
+        CastSpell(_Q, Kurg)
+          end
+    end
+    if Krug2 ~= nil then
+           if Menu.Jungleclear.Smite and  skills.SkillQ.ready and ValidTarget(Krug2, skills.SkillQ.range) and Krug2.health <= Qdamage() then
+        CastSpell(_Q, Krug2)
+          end
+    end
+    if Red ~= nil then
+        if Menu.Jungleclear.Smite and  skills.SkillQ.ready and ValidTarget(Red, skills.SkillQ.range) and Red.health <= Qdamage() then
+        CastSpell(_Q, Red)
+          end
+       end
+       if Red2 ~= nil then
+           if Menu.Jungleclear.Smite and  skills.SkillQ.ready and ValidTarget(Red2, skills.SkillQ.range) and Red2.health <= Qdamage() then
+        CastSpell(_Q, Red2)
+end
+end
+        if Blue ~= nil then
+        if Menu.Jungleclear.Smite and  skills.SkillQ.ready and ValidTarget(Blue, skills.SkillQ.range) and Blue.health <= Qdamage() then
+        CastSpell(_Q, Blue)
+          end
+        end
+          if Blue2 ~= nil then
+           if Menu.Jungleclear.Smite and  skills.SkillQ.ready and ValidTarget(Blue2, skills.SkillQ.range) and Blue2.health <= Qdamage() then
+        CastSpell(_Q, Blue2)
+        end
+      end
+      if Dragon ~= nil then
+        if Menu.Jungleclear.Smite and  skills.SkillQ.ready and ValidTarget(Dragon, skills.SkillQ.range) and Dragon.health <= Qdamage() then
+        CastSpell(_Q, Dragon)
+        end
+      end
+      if Baron ~= nil then
+          if Menu.Jungleclear.Smite and  skills.SkillQ.ready and ValidTarget(Baron, skills.SkillQ.range) and Baron.health <= Qdamage() then
+        CastSpell(_Q, Baron)
+        end
+      end
+end
 function LaneClear()
 	for i, targetMinion in pairs(targetMinions.objects) do
 		if targetMinion ~= nil then
@@ -485,31 +684,13 @@ function Qdamage()
         end
       end
       
-function SmiteQ()
-  ---print(" shiiiiiittt") 
-	for p, jungleMinion in pairs(jungleMinions.objects) do
-   if jungleMinion ~= nil then
-    -- print(" hij vind een minion")
-   
-    if Menu.Jungleclear.Smite and skills.SkillQ.ready and ValidTarget(jungleMinion, skills.SkillQ.range) and jungleMinion.health <= Qdamage() then
-        CastSpell(_Q, jungleMinion)
-      end
-    end
-  end
 
-end
-
-    
 function JungleClear()
 
 	for i, jungleMinion in pairs(jungleMinions.objects) do
 		if jungleMinion ~= nil then
       --print(" wel bij jungle clear")
-			if Menu.Jungleclear.useClearQ and skills.SkillQ.ready and ValidTarget(jungleMinion, skills.SkillQ.range) then
-				CastSpell(_Q, jungleMinion)
-			elseif Menu.Jungleclear.Smite and skills.SkillQ.ready and ValidTarget(jungleMinion, skills.SkillQ.range) and jungleMinion.health <= qDmg then
-        CastSpell(_Q, jungleMinion)
-      end
+	--if jungleMinion then print(jungleMinion.maxHealth) end
 			if Menu.Jungleclear.useClearW and skills.SkillW.ready and ValidTarget(jungleMinion, skills.SkillW.range) then
 				CastSpell(_W)
 			end
