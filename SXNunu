@@ -1,5 +1,5 @@
 if myHero.charName ~= "Nunu"  or not VIP_USER then return end
-local version = 0.7
+local version = 0.8
 local AUTOUPDATE = true
 local SCRIPT_NAME = "SXNunu"
 require 'VPrediction'
@@ -36,7 +36,7 @@ local target = nil
 
 function CheckUpdate()
         local scriptName = "SXNunu"
-        local version = 1.7
+        local version = 1.8
         local ToUpdate = {}
         ToUpdate.Version = version
         ToUpdate.Host = "raw.githubusercontent.com"
@@ -270,8 +270,9 @@ function OnTick()
 	jungleMinions:update()
 	CDHandler()
 	KillSteal()
-  SxOrb:ForceTarget(Target)
-  findadc()
+ -- SxOrb:ForceTarget(Target)
+ -- findadc()
+ --print(ulti)
  --print(Dragon)
  -- print(Passive)
   
@@ -414,7 +415,7 @@ function AllInCombo(target, typeCombo)
 		ItemUsage(target)
      if target ~= nil and target.type == myHero.type and target.team ~= myHero.team then
     --   print("Papi")
-        if skills.SkillR.ready and Menu.NunuCombo.rSet.useR and ValidTarget(target, 300) and AreaEnemyCount() >= Menu.NunuCombo.rSet.RMode  then
+        if skills.SkillR.ready and Menu.NunuCombo.rSet.useR and ValidTarget(target, 300) and AreaEnemyCount() >= Menu.NunuCombo.rSet.RMode and not ulti  then
         CastSpell(_R) 
         end
 
@@ -434,7 +435,7 @@ function AllInCombo(target, typeCombo)
       end
       end
    if ADC then
-        prefadc()
+      --  prefadc()
       end
 end
 end
@@ -1021,7 +1022,7 @@ function OnProcessSpell(unit, spell)
   end
 --]]
 function OnProcessSpell(unit, spell)
- if unit.name == myHero.name then
+ if spell and spell.name and unit.isMe then
    if spell.name:find("AbsoluteZero") then
    ulti = true
    ultitime = GetGameTimer()
@@ -1035,7 +1036,7 @@ function OnSendPacket(p)
   --print(string.format('%02X', p.header))
   if ulti then
    -- print(string.format('%02X', p.header))
-  if p.header == 0x00114 or p.header == 0x0114 or p.header == 0x0026 then p:Block() end
+  if p.header == 0x00114 or p.header == 0x0067 or p.header == 0x0028 then p:Block() end
   --print("done")
   -- patch 5.7 p.header == 0x00D2 
 end
@@ -1089,8 +1090,7 @@ end
 --]]
 --[[
 function OnSendPacket(p)
-  if p.header == 0x004F or p.header == 0x006C or p.header == 0x0054 then return end
+  if p.header == 0x004F or p.header == 0x004D or p.header == 0x0107 then return end
   
   print(string.format('%02X', p.header))
-end
---]]
+end--]]
