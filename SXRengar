@@ -1,5 +1,5 @@
 if myHero.charName ~= "Rengar"  or not VIP_USER then return end
-local version = 0.5
+local version = 0.6
 local AUTOUPDATE = true
 local SCRIPT_NAME = "SXRengar"
 require 'VPrediction'
@@ -11,7 +11,7 @@ require 'HPrediction'
 
 function CheckUpdate()
         local scriptName = "SXRengar"
-        local version = 1.2
+        local version = 1.6
         local ToUpdate = {}
         ToUpdate.Version = version
         ToUpdate.Host = "raw.githubusercontent.com"
@@ -236,7 +236,11 @@ function initComponents()
  -- Menu.ProdSettings.OD
  
  Menu:addSubMenu("[" .. myHero.charName.." - Passive Priority]", "Passive") 
- Menu.Passive:addParam("SelectPassive", "Choose your passive priority", SCRIPT_PARAM_LIST, 1, {"Q Priority", "W Priority", "E Priotity"})--Menu.Passive.SelectPassive == 1
+ Menu.Passive:addParam("SelectPassive", "Choose your passive priority", SCRIPT_PARAM_LIST, 1, {"Q Priority", "W Priority", "E Priotity"})
+ Menu.Passive:addParam("W", "W Priority when x% health", SCRIPT_PARAM_ONOFF, false)
+ Menu.Passive:addParam("Low", " x% of health", SCRIPT_PARAM_SLICE, 15, 0, 100, 0) 
+ --Menu.Passive.SelectPassive == 1
+
  Menu:addSubMenu("["..myHero.charName.." - Additionals]", "Ads")
     Menu.Ads:addParam("autoLevel", "Auto-Level Spells", SCRIPT_PARAM_ONOFF, false)
    Menu.Ads:addSubMenu("Killsteal", "KS")
@@ -246,8 +250,8 @@ function initComponents()
   Menu.Ads.KS:addParam("autoQ", "OnGapClose", SCRIPT_PARAM_ONOFF, false) -- Menu.Ads.KS.autoQ
   Menu.Ads.KS:addParam("KSWE", "Killsteal with W and Q", SCRIPT_PARAM_ONOFF, false)--Menu.Ads.KS.KSWE
   Menu.Ads:addSubMenu("VIP", "VIP")
-    Menu.Ads.VIP:addParam("skin", "Use custom skin", SCRIPT_PARAM_ONOFF, false)
-  Menu.Ads.VIP:addParam("skin1", "Skin changer", SCRIPT_PARAM_SLICE, 1, 1, 5)
+  --  Menu.Ads.VIP:addParam("skin", "Use custom skin", SCRIPT_PARAM_ONOFF, false)
+  --Menu.Ads.VIP:addParam("skin1", "Skin changer", SCRIPT_PARAM_SLICE, 1, 1, 5)
  
     --[[
  Menu:addSubMenu("["..myHero.charName.." - Target Selector]", "targetSelector")
@@ -1062,7 +1066,18 @@ function OnDeleteObj(object)
 end
 end
 function PassivePriority()
-  if target ~= nil and Passive then
+  if target ~= nil and target.type == myHero.type and target.team ~= myHero.team and Passive then
+     local targetH = target.maxHealth / 100 
+      local targetH2 = targetH * Menu.Passiv.Low
+      if Menu.Passive.W then
+        if target.health <= targetH2 then
+                  if Menu.RengarCombo.wSet.useW and ValidTarget(target, skills.SkillW.range) and skills.SkillW.ready then
+         CastSpell(_W, myHero)
+         CastSpell(_W, myhero)
+       end
+     end
+     end
+          
     
     if Menu.Passive.SelectPassive == 3 then
         if Menu.ProdSettings.SelectProdiction == 1 then
@@ -1089,7 +1104,10 @@ function PassivePriority()
          CastSpell(_W, myHero)
          CastSpell(_W, myhero)
       
-        end
+      end
+
+     
+      
     elseif Menu.Passive.SelectPassive == 1 then
        if Menu.RengarCombo.qSet.useQ and ValidTarget(target, skills.SkillQ.range) and skills.SkillQ.ready then
          CastSpell(_Q, myHero)
