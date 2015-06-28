@@ -1,5 +1,5 @@
 if myHero.charName ~= "Lux"  or not VIP_USER then return end
-local version = 1.5
+local version = 1.6
 local AUTOUPDATE = true
 local SCRIPT_NAME = "SXLux"
 
@@ -26,7 +26,7 @@ local zhonyaslot = nil
 
 function CheckUpdate()
         local scriptName = "SXLux"
-        local version = 1.5
+        local version = 1.6
         local ToUpdate = {}
         ToUpdate.Version = version
         ToUpdate.Host = "raw.githubusercontent.com"
@@ -242,17 +242,13 @@ local BShield,SShield,Shield,CC = false,false,false,false
 local shottype,radius,maxdistance = 0,0,0
 local hitchampion = false
 
+        _SAC = false
+  
 function OnLoad()
 	if _G.ScriptLoaded then	return end
 	_G.ScriptLoaded = true
 	initComponents()
- --[[ HPred:AddSpell(, {type = "DelayLine", delay = .25, range = 1175, speed = 1200, collisionM = true, collisionH = true, width = 160})
- -- HPred:AddSpell("Q", "Lux", {type = "DelayLine", delay = 0.25, range = 1175, speed = math.huge, width = 180})
-   HPred:AddSpell("R", "Lux", {type = "PromptLine", delay = 1.75, range = 3340, speed = 3000, width = 380})
-    HPred:AddSpell("E", "Lux", {type = "PromptCircle", delay = 0.25, range = 1100, speed = 1300 , radius = 350})
-    
-    --]]
-    
+
     
    
  
@@ -261,43 +257,30 @@ Lux_E = HPSkillshot({type = "DelayCircle", delay = 0.25, range = 1100, speed = 1
 --Lux E2 =  ["E2"] = HPSkillshot({type = "PromptCircle", delay = 0, range = 0, radius = 350})
 Lux_R  = HPSkillshot({type = "PromptLine", delay = 1.012, range = 3300, speed = 1800, width = 380})
 
- 
---[[
-local QPos, QHitchance = HPred:GetPredict(Lux_Q, target, myHero)
-local EPos, EHitchance = HPred:GetPredict(Lux_E, target, myHero)
-local E2Pos, E2Hitchance = HPred:GetPredict(Lux_E2, target, pos where you casted E)
-local RPos, RHitchance = HPred:GetPredict(Lux_R, target, myHero)
-    --]]
-   --print(level())
- -- print(GeRDamage)
- -- print(paarprocent)
- -- print(percentage)
-  --print(pewpew)
-  --print(GeRDamage())
- -- print(myHero:GetSpellData(_R).level)
-  --UpdateWeb(true, ScriptName, id, HWID)
 
 end
-
 function initComponents()
+ -- homo = GetGameTimer()
 HPred = HPrediction()
-  DP = DivinePred()
+  --DP = DivinePred()
     -- VPrediction Start
  VP = VPrediction()
-   -- SOW Declare
-   --Orbwalker = SOW(VP)
-  -- Target Selector
+
    ts = TargetSelector(TARGET_LESS_CAST_PRIORITY, 3400)
   
  Menu = scriptConfig("SXLux by SyraX", "luxMA")
 
-   if _G.MMA_Loaded ~= nil then
+   if _G.MMA_Loaded then
      PrintChat("<font color = \"#33CCCC\">MMA Search:</font> <font color = \"#fff8e7\"> Got it! MMA loaded Gino </font>")
      isMMA = true
- elseif _G.AutoCarry ~= nil then
+     
+ elseif _SAC then
+    
       PrintChat("<font color = \"#33CCCC\">SAC Search:</font> <font color = \"#fff8e7\"> Got it! SAC Loaded Gino </font>")
      isSAC = true
- else
+     else
+
+  
       PrintChat("<font color = \"#33CCCC\">OrbWalker found:</font> <font color = \"#fff8e7\"> Loading SX</font>")
        --Menu:addSubMenu("["..myHero.charName.." - Orbwalker]", "SOWorb")
       -- Orbwalker:LoadToMenu(Menu.SOWorb)
@@ -307,7 +290,7 @@ HPred = HPrediction()
 
     Menu:addTS(ts)
     end
-  
+
  Menu:addSubMenu("["..myHero.charName.." - Combo]", "luxCombo")
     Menu.luxCombo:addParam("combo", "Combo mode", SCRIPT_PARAM_ONKEYDOWN, false, 32)
     Menu.luxCombo:addSubMenu("Q Settings", "qSet")
@@ -384,8 +367,8 @@ HPred = HPrediction()
    Menu.Ads.KS:addParam("KSB", "Steal Buffs", SCRIPT_PARAM_ONOFF, false)
   Menu.Ads.KS:addParam("igniteRange", "Minimum range to cast Ignite", SCRIPT_PARAM_SLICE, 470, 0, 600, 0)
   Menu.Ads:addSubMenu("VIP", "VIP")
-    Menu.Ads.VIP:addParam("skin", "Use custom skin", SCRIPT_PARAM_ONOFF, false)
-  Menu.Ads.VIP:addParam("skin1", "Skin changer", SCRIPT_PARAM_SLICE, 1, 1, 5)
+  --  Menu.Ads.VIP:addParam("skin", "Use custom skin", SCRIPT_PARAM_ONOFF, false)
+  --Menu.Ads.VIP:addParam("skin1", "Skin changer", SCRIPT_PARAM_SLICE, 1, 1, 5)
     
  --[[Menu:addSubMenu("["..myHero.charName.." - Target Selector]", "targetSelector")
  Menu.targetSelector:addTS(ts)
@@ -402,10 +385,10 @@ HPred = HPrediction()
   allyMinions = minionManager(MINION_ALLY, 360, myHero, MINION_SORT_MAXHEALTH_DEC)
  jungleMinions = minionManager(MINION_JUNGLE, 360, myHero, MINION_SORT_MAXHEALTH_DEC)
  
- if Menu.Ads.VIP.skin and VIP_USER then
-       GenModelPacket("lux", Menu.Ads.VIP.skin1)
-     lastSkin = Menu.Ads.VIP.skin1
-    end
+ --if Menu.Ads.VIP.skin and VIP_USER then
+      -- GenModelPacket("lux", Menu.Ads.VIP.skin1)
+     --lastSkin = Menu.Ads.VIP.skin1
+   -- end
     
 
   
@@ -431,39 +414,24 @@ tijd = math.huge
   EHP = nil
   Passive = false
   Stun = false
-  
+  local divineQSkill = SkillShot.PRESETS['LuxLightBinding']
+  local divineESkill = SkillShot.PRESETS['LuxLightStrikeKugel']
+  local divineRSkill = SkillShot.PRESETS['LuxMaliceCannon']
+local DP = DivinePred()
+
 Passivetime = math.huge
  -- bono = nil
  -- pewpew = nil
   --pewpew = PassiveDamage() + GeRDamage()
 function OnTick()
-     --[[  if target ~= nil and target.type == myHero.type and target.team ~= myHero.team and target.valid and not target.dead then
-      
-        for i=1, heroManager.iCount do
-        local target = heroManager:GetHero(i)
-          if ValidTarget(target) and target ~= nil and LevelR() ~= nil then
-          qDmg = getDmg("Q", target,myHero)
-          eDmg = getDmg("E", target,myHero)
-          rDmg = getDmg("R", target, myHero)
-          pDmg = getDmg("P", target, myHero)
-          local rDmgP, TypeDmg = getDmg("R",target,myHero,2)
-          rDmg = rDmg + LevelR()
-          if rDmgP ~= nil then
-            print(rDmgP)
-            print(rDmg)
-          end
-        end
-      end
-      end
- --]]
-  --print(rDmg)
-  --print(Stun)
-  
-  --print(Passive)
- -- print(target.magicArmor)
-  --print(paarprocent)
-  --print(level())
- -- print("veraisgek")
+      if _SAC == false and _G.AutoCarry then
+        print("Found SAC! Plss disable SX orbwalk !")
+        _SAC = true
+        
+    end
+
+
+
   target = GetCustomTarget()
 	targetMinions:update()
 	allyMinions:update()
@@ -493,11 +461,7 @@ end
 
         
   
-  --RDamage()
-  --print(EHP())
- -- print(paarprocent)
- -- PassiveDamage()
- -- vera()
+
  if Passivetime + 6 <= GetGameTimer() then 
   Passive = false
   end
@@ -1284,15 +1248,16 @@ end
 
 
 
+
+
 function DevineQ()
- -- print("Boss")
-  if target ~= nil and target.type == myHero.type and target.team == myHero.team then
+ -- print("johhny")
+  if target ~= nil and target.type == myHero.type then
   if Menu.ProdSettings.SelectProdiction == 3 then
 			local target = DPTarget(target)
-			local LuxQ = LineSS(skills.SkillQ.speed, skills.SkillQ.range, skills.SkillQ.width, skills.SkillQ.delay, 0)
-			local State, Position, perc = DP:predict(target, LuxQ)
+		--	local NidaleeQ = LineSS(target, divineQSkill)
+			local State, Position, perc = DP:predict(target, divineQSkill)
 			if State == SkillShot.STATUS.SUCCESS_HIT then 
-        
 				
       Packet("S_CAST", {spellId = _Q, fromX = Position.x, fromY = Position.z, toX = Position.x, toY = Position.z}):send()
 
@@ -1302,11 +1267,12 @@ function DevineQ()
 end
 end
 function DevineE()
-  if target ~= nil and target.type == myHero.type and target.team == myHero.team then
+ -- print("johhny")
+  if target ~= nil and target.type == myHero.type then
   if Menu.ProdSettings.SelectProdiction == 3 then
 			local target = DPTarget(target)
-			local LuxE = CircleSS(skills.SkillE.speed, skills.SkillE.range, skills.SkillE.width, skills.SkillE.delay, 0)
-			local State, Position, perc = DP:predict(target, LuxE)
+		--	local NidaleeQ = LineSS(target, divineQSkill)
+			local State, Position, perc = DP:predict(target, divineESkill)
 			if State == SkillShot.STATUS.SUCCESS_HIT then 
 				
       Packet("S_CAST", {spellId = _E, fromX = Position.x, fromY = Position.z, toX = Position.x, toY = Position.z}):send()
@@ -1317,11 +1283,12 @@ function DevineE()
 end
 end
 function DevineR()
-    if target ~= nil and target.type == myHero.type and target.team == myHero.team then
+  --print("johhny")
+  if target ~= nil and target.type == myHero.type then
   if Menu.ProdSettings.SelectProdiction == 3 then
 			local target = DPTarget(target)
-			local LuxR = LineSS(skills.SkillR.speed, skills.SkillR.range, skills.SkillR.width, skills.SkillR.delay, 0)
-			local State, Position, perc = DP:predict(target, LuxR)
+		--	local NidaleeQ = LineSS(target, divineQSkill)
+			local State, Position, perc = DP:predict(target, divineRSkill)
 			if State == SkillShot.STATUS.SUCCESS_HIT then 
 				
       Packet("S_CAST", {spellId = _R, fromX = Position.x, fromY = Position.z, toX = Position.x, toY = Position.z}):send()
@@ -1361,7 +1328,7 @@ end
 end 
 
 function KSNoPassive()
- -- print(rDmg)
+ --print("DP")
   if not Passive then
     if target ~= nil and target.type == myHero.type and target.team ~= myHero.team and target.valid and not target.dead then
     --  if paardebek ~= nil then
@@ -1385,7 +1352,7 @@ function KSNoPassive()
               end
               if target.health <= rDmg and Rready and Menu.Ads.KS.useR  and ValidTarget(target, skills.SkillR.range)then
               RVP()
-            print(rDmg)
+           -- print(rDmg)
             end
             
              --[[ if target.health <=  qDmg + eDmg + pDmg and Menu.Ads.KS.useQ and Menu.Ads.KS.useE and Vathen
@@ -1401,25 +1368,35 @@ function KSNoPassive()
             KSAA()
            end
           elseif Menu.ProdSettings.SelectProdiction == 1 then
+            --print("HP")
             if target.health <= qDmg and Qready and Menu.Ads.KS.useQ then
             CastQ()
             elseif target.health <= eDmg and Eready and Menu.Ads.KS.useE then
             CastE()
             elseif target.health <= rDmg and Rready and Menu.Ads.KS.useR  and ValidTarget(target, skills.SkillR.range)then
             CastR()
+            end
+          elseif Menu.ProdSettings.SelectProdiction == 3 then
+           -- print("DP2")
+            if target.health <= qDmg and Qready and Menu.Ads.KS.useQ then
+            DevineQ()
+            elseif target.health <= eDmg and Eready and Menu.Ads.KS.useE then
+            DevineE()
+            elseif target.health <= rDmg and Rready and Menu.Ads.KS.useR  and ValidTarget(target, skills.SkillR.range)then
+            DevineR()
           --  print("tepper je bent eccht opgeschoten vandaag")
         
-          
+          end
             end
          end
         end
       end
     end
   end
-end
+
 
 function KSWhitPassive()
-
+--print("DP")
   
   if Passive then
       if target ~= nil and target.type == myHero.type and target.team ~= myHero.team and target.visible and target.valid and not target.dead then
@@ -1444,6 +1421,9 @@ function KSWhitPassive()
             RVP()
               elseif Menu.ProdSettings.SelectProdiction == 1 then
                 CastR()
+                elseif Menu.ProdSettings.SelectProdiction == 3 then
+                DevineR()
+              
            -- print(rDmgP)
               end
             end
@@ -1452,6 +1432,9 @@ function KSWhitPassive()
                 EVP()
               elseif Menu.ProdSettings.SelectProdiction == 1 then
                 CastE()
+                elseif Menu.ProdSettings.SelectProdiction == 3 then
+                DevineE()
+              
               end
             end
             if target.health <= QDmgP and Qready and Menu.Ads.KS.useQ and ValidTarget(target, skills.SkillQ.range) then
@@ -1459,6 +1442,8 @@ function KSWhitPassive()
                 QVP()
               elseif Menu.ProdSettings.SelectProdiction == 1 then
                 CastQ()
+              elseif Menu.ProdSettings.SelectProdiction == 3 then
+                DevineQ()
               end
             end
             
@@ -1776,5 +1761,14 @@ end
   end
 
   
+function caa()
+	if MenuZed.orb == 1 then
+		if MenuZed.comboConfig.uaa then
+			SxOrb:EnableAttacks()
+		elseif not MenuZed.comboConfig.uaa then
+			SxOrb:DisableAttacks()
+		end
+	end
+end
   
   -- kip
