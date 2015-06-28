@@ -1,5 +1,5 @@
 if myHero.charName ~= "Zed"  or not VIP_USER then return end
-local version = 0.3
+local version = 0.4
 local AUTOUPDATE = true
 local SCRIPT_NAME = "SXZed"
 require 'VPrediction'
@@ -40,7 +40,7 @@ local target = nil
 
 function CheckUpdate()
         local scriptName = "SXZed"
-        local version = 1.3
+        local version = 1.4
         local ToUpdate = {}
         ToUpdate.Version = version
         ToUpdate.Host = "raw.githubusercontent.com"
@@ -245,8 +245,8 @@ Menu.ZedCombo:addParam("Combomode", "Choose Combo Mode", SCRIPT_PARAM_LIST, 1, {
   
  
   Menu.Ads:addSubMenu("VIP", "VIP")
-    Menu.Ads.VIP:addParam("skin", "Use custom skin", SCRIPT_PARAM_ONOFF, false)
-  Menu.Ads.VIP:addParam("skin1", "Skin changer", SCRIPT_PARAM_SLICE, 1, 1, 5)
+ --   Menu.Ads.VIP:addParam("skin", "Use custom skin", SCRIPT_PARAM_ONOFF, false)
+  --Menu.Ads.VIP:addParam("skin1", "Skin changer", SCRIPT_PARAM_SLICE, 1, 1, 5)
 
   
  Menu:addSubMenu("["..myHero.charName.." - Drawings]", "drawings")
