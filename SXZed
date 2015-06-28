@@ -1,5 +1,5 @@
 if myHero.charName ~= "Zed"  or not VIP_USER then return end
-local version = 0.4
+local version = 0.5
 local AUTOUPDATE = true
 local SCRIPT_NAME = "SXZed"
 require 'VPrediction'
@@ -40,7 +40,7 @@ local target = nil
 
 function CheckUpdate()
         local scriptName = "SXZed"
-        local version = 1.4
+        local version = 1.5
         local ToUpdate = {}
         ToUpdate.Version = version
         ToUpdate.Host = "raw.githubusercontent.com"
